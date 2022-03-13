@@ -1,0 +1,13 @@
+On branch lab0
+Your branch is ahead of 'origin/lab0' by 1 commit.
+  (use "git push" to publish your local commits)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   README.txt
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	Stage.txt
+	Untracked.txt
+
