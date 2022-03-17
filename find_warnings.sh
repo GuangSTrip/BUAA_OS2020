@@ -9,13 +9,13 @@ sed -i 's/warning: //g' result.txt
 if [ $a -eq 0 ]
 then 
 i=1
-touch stdin.txt
+touch stdin_lab0_z.txt
 while [ $i -le $2 ]
 do
-echo $i>stdin.txt
-./test < stdin.txt >> result.txt
+echo $i>stdin_lab0_z.txt
+./test < stdin_lab0_z.txt >> result.txt
 i=$[$i+1]
 done
-rm stdin.txt
+rm stdin_lab0_z.txt
 fi
 pwd >> result.txt
