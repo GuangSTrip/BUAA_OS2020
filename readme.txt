@@ -1,2 +1,0 @@
-BUAA_OSLAB
-
