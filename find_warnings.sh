@@ -2,7 +2,6 @@
 #lab0-Extra
 touch warning.txt
 touch result.txt
-#gcc $1 -o test
 gcc -Wall $1 -o test 2> warning.txt
 a=$?
 grep  warning warning.txt > result.txt
