@@ -1,0 +1,1 @@
+4:	int os_hello = 3;
