@@ -133,7 +133,7 @@ lp_Print(void (*output)(void *, char *, int),
 			Think the difference between case 'd' and others. (hint: negFlag).
 		*/
 	    	if (num < 0) {
-			num *= -1;
+			num = -num;
 			negFlag = 1;
 		}
 		length = PrintNum(buf, num, 10, negFlag, width, ladjust, padc, 0);
