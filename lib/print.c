@@ -77,7 +77,7 @@ lp_Print(void (*output)(void *, char *, int),
 	/* we found a '%' */
 	fmt++;
 	ladjust = 0;
-	padc = '';
+	padc = ' ';
 	if (*fmt == '-') {
 		ladjust = 1;
 		fmt++;
