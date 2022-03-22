@@ -83,7 +83,8 @@ lp_Print(void (*output)(void *, char *, int),
 		fmt++;
 	} else if (*fmt == '0') {
                 padc = '0';
-        }
+        	fmt++;
+	}
 	/* check for long */
 	longFlag = 0;
 	if (*fmt == 'l') {
