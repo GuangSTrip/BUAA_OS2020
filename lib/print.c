@@ -68,9 +68,9 @@ lp_Print(void (*output)(void *, char *, int),
 	while (*fmt != '%' && *fmt != '\0')
 	{ 
 	    /* scan for the next '%' */
+		OUTPUT(arg, fmt, 1);
 		fmt++;
 		/* flush the string found so far */
-		OUTPUT(arg, fmt, 1);
 	    /* check "are we hitting the end?" */
 	}
 	if (*fmt == '\0')	break;
