@@ -86,11 +86,6 @@ lp_Print(void (*output)(void *, char *, int),
         	fmt++;
 	}
 	/* check for long */
-	longFlag = 0;
-	if (*fmt == 'l') {
-		longFlag = 1;
-		fmt++;
-	}
 	/* check for other prefixes */
 	width = 0;
 	while (IsDigit(*fmt)) {
@@ -105,6 +100,11 @@ lp_Print(void (*output)(void *, char *, int),
                 	fmt++;
         	}		
 	}
+	longFlag = 0;
+        if (*fmt == 'l') {
+                longFlag = 1;
+                fmt++;
+        }
 		/* check format flag */
 	
 
