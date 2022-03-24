@@ -68,14 +68,14 @@ int readelf(u_char *binary, int size)
 	ph_entry_size = ehdr->e_phentsize;
 	int find = 1;//find = 1 means it is not wrong
      	u_char *ptr_ph_table_i = ptr_ph_table;
-	u_char *ptr_ph_table_j = ptr_ph_table;
 	Elf32_Phdr *phdr_i = NULL;
 	Elf32_Phdr *phdr_j = NULL;
 	for (int i = 0;i < ph_entry_count;i++) {
 		phdr_i = (Elf32_Phdr*) ptr_ph_table_i;
+		u_char *ptr_ph_table_j = ptr_ph_table;
 		for (int j = 0;j < ph_entry_count;j++) {
 			phdr_j = (Elf32_Phdr*) ptr_ph_table_j;
-			Elf32_Addr l2 = phdr_i->p_vaddr + phdr_i->p_filesz;
+			Elf32_Addr l2 = phdr_i->p_vaddr + phdr_i->p_memsz;
 			Elf32_Addr r1 = phdr_j->p_vaddr;
 			if ( l2/4096 == r1/4096 ) {
 				if (l2 > r1) {
