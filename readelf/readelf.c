@@ -49,11 +49,11 @@ int readelf(u_char *binary, int size)
 
         int Nr;
 
-        Elf32_Shdr *shdr = NULL;
+        Elf32_Phdr *phdr = NULL;
 
-        u_char *ptr_sh_table = NULL;
-        Elf32_Half sh_entry_count;
-        Elf32_Half sh_entry_size;
+        u_char *ptr_ph_table = NULL;
+        Elf32_Half ph_entry_count;
+        Elf32_Half ph_entry_size;
 
 
         // check whether `binary` is a ELF file.
@@ -63,15 +63,42 @@ int readelf(u_char *binary, int size)
         }
 
         // get section table addr, section header number and section header size.
-	ptr_sh_table = binary + ehdr->e_shoff;
-	sh_entry_count = ehdr->e_shnum;
-	sh_entry_size = ehdr->e_shentsize;
-        // for each section header, output section number and section addr. 
-        // hint: section number starts at 0.
-	for (int i = 0;i < sh_entry_count;i++) {
-		shdr = (Elf32_Shdr*) ptr_sh_table;
-		printf("%d:0x%x\n", i, shdr->sh_addr);
-		ptr_sh_table += sh_entry_size;
+	ptr_ph_table = binary + ehdr->e_phoff;
+	ph_entry_count = ehdr->e_phnum;
+	ph_entry_size = ehdr->e_phentsize;
+	int find = 1;//find = 1 means it is not wrong
+     	u_char *ptr_ph_table_i = ptr_ph_table;
+	u_char *ptr_ph_table_j = ptr_ph_table;
+	Elf32_Phdr *phdr_i = NULL;
+	Elf32_Phdr *phdr_j = NULL;
+	for (int i = 0;i < ph_entry_count;i++) {
+		phdr_i = (Elf32_Phdr*) ptr_ph_table_i;
+		for (int j = 0;j < ph_entry_count;i++) {
+			phdr_j = (Elf32_Phdr*) ptr_ph_table_j;
+			Elf32_Addr l2 = phdr_i->p_vaddr + phdr_i->p_memsz;
+			Elf32_Addr r1 = phdr_j->p_vaddr;
+			if ( l2/0x1000 == r1/0x1000 ) {
+				if (l2 > r1) {
+					printf("Conflict at page va : 0x%x\n",l2/0x1000);
+				} else {
+					printf("Overlay at page va : 0x%x\n",l2/0x1000);
+				}
+				find = 0;
+				break;	
+			}
+			ptr_ph_table_j += ph_entry_size;
+		}	
+		ptr_ph_table_i += ph_entry_size;
+		if (!find)	break;
+	}
+	
+	if (find) {
+     		ptr_ph_table = binary + ehdr->e_phoff;
+	  	for (int i = 0;i < ph_entry_count;i++) {
+			phdr = (Elf32_Phdr*) ptr_ph_table;
+			printf("%d:0x%x,0x%x\n", i, phdr->p_filesz, phdr->p_memsz);
+			ptr_ph_table += ph_entry_size;
+		}
 	}
 
         return 0;
