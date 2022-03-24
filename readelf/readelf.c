@@ -78,13 +78,14 @@ int readelf(u_char *binary, int size)
 			Elf32_Addr l2 = phdr_i->p_vaddr + phdr_i->p_memsz;
 			Elf32_Addr r1 = phdr_j->p_vaddr;
 			if ( l2/4096 == r1/4096 ) {
-				if (l2 > r1) {
-					printf("Conflict at page va : 0x%x\n",l2/4096 * 4096);
-				} else {
 					printf("Overlay at page va : 0x%x\n",l2/4096 * 4096);
-				}
 				find = 0;
 				break;	
+			}
+			if (l2 > r1) {
+                                printf("Conflict at page va : 0x%x\n",r1/4096 * 4096);
+                        	find = 0;
+                                break;         
 			}
 			ptr_ph_table_j += ph_entry_size;
 		}	
