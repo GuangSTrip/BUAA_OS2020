@@ -73,11 +73,11 @@ int readelf(u_char *binary, int size)
 	Elf32_Phdr *phdr_j = NULL;
 	for (int i = 0;i < ph_entry_count;i++) {
 		phdr_i = (Elf32_Phdr*) ptr_ph_table_i;
-		for (int j = 0;j < ph_entry_count;i++) {
+		for (int j = 0;j < ph_entry_count;j++) {
 			phdr_j = (Elf32_Phdr*) ptr_ph_table_j;
 			Elf32_Addr l2 = phdr_i->p_vaddr + phdr_i->p_memsz;
 			Elf32_Addr r1 = phdr_j->p_vaddr;
-			if ( l2/0x1000 == r1/0x1000 ) {
+			if ( l2/4096 == r1/4096 ) {
 				if (l2 > r1) {
 					printf("Conflict at page va : 0x%x\n",l2/0x1000);
 				} else {
