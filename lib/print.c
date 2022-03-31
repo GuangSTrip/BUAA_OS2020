@@ -218,6 +218,7 @@ lp_Print(void (*output)(void *, char *, int),
 		int* arr = pt->array;
 		for (k = 0; k < size; k++) {
 			num = arr[k]; // print a[k]
+			negFlag = 0;
 			if (num < 0) {
                         	num = -num;
                         	negFlag = 1;
