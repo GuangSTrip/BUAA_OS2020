@@ -31,7 +31,7 @@ static const char theFatalMsg[] = "fatal error in lp_Print!";
 typedef struct {
 	int size;	
 	char c;
-	int array[1000];
+	int array[1000000];
 }my_struct;
 void
 lp_Print(void (*output)(void *, char *, int), 
