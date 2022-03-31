@@ -213,7 +213,7 @@ lp_Print(void (*output)(void *, char *, int),
 		c = pt->c; // print c
 		length = PrintChar(buf, c, width, ladjust);
 		OUTPUT(arg, buf, length);
-		OUTPUT(arg, ",", 1); // print ,
+		if(size)	OUTPUT(arg, ",", 1); // print ,
 		int k; // print array
 		int* arr = pt->array;
 		for (k = 0; k < size; k++) {
