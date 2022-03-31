@@ -23,17 +23,16 @@ extern int PrintNum(char *, unsigned long, int, int, int, int, char, int);
 /* private variable */
 static const char theFatalMsg[] = "fatal error in lp_Print!";
 
-/* -*-
+/* -*-i
  * A low level printf() function.
  */
 //lab1-2-exam
 #define SIZE_C 1000
-struct my_struct{
+typedef struct {
 	int size;	
 	char c;
-	int array[SIZE_C];
-}*pt;
-
+	int array[1000];
+}my_struct;
 void
 lp_Print(void (*output)(void *, char *, int), 
 	 void * arg,
@@ -54,7 +53,7 @@ lp_Print(void (*output)(void *, char *, int),
     char c;
     char *s;
     long int num;
-
+    my_struct* pt;
 	
 
     int longFlag;
@@ -204,25 +203,31 @@ lp_Print(void (*output)(void *, char *, int),
 	    break;
 	
 	case 'T':
-		pt = (char*)va_arg(ap, char *);
-		OUTPUT(arg, '{', 1); // print {
+	
+		pt = va_arg(ap, char *);
+		OUTPUT(arg, "{", 1); // print {
 		int size = pt->size; // print size
 		length = PrintNum(buf, size, 10, negFlag, width, ladjust, padc, 0);
 		OUTPUT(arg, buf, length);
-		OUTPUT(arg, ',', 1); // print ,
+		OUTPUT(arg, ",", 1); // print ,
 		c = pt->c; // print c
 		length = PrintChar(buf, c, width, ladjust);
 		OUTPUT(arg, buf, length);
-		OUTPUT(arg, ',', 1); // print ,
+		OUTPUT(arg, ",", 1); // print ,
 		int k; // print array
 		int* arr = pt->array;
 		for (k = 0; k < size; k++) {
 			num = arr[k]; // print a[k]
+			if (num < 0) {
+                        	num = -num;
+                        	negFlag = 1;
+                	}
 			length = PrintNum(buf, num, 10, negFlag, width, ladjust, padc, 0);
 			OUTPUT(arg, buf, length);
-			OUTPUT(arg, ',', 1); // print ,
+			if(k != size - 1)
+			OUTPUT(arg, ",", 1); // print ,
 		}
-		OUTPUT(arg, '}', 1); // print }
+		OUTPUT(arg, "}", 1); // print }
 		break;
 	
 	 case '\0':
