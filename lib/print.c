@@ -26,6 +26,14 @@ static const char theFatalMsg[] = "fatal error in lp_Print!";
 /* -*-
  * A low level printf() function.
  */
+//lab1-2-exam
+#define SIZE_C 1000
+struct my_struct{
+	int size;	
+	char c;
+	int array[SIZE_C];
+}*pt;
+
 void
 lp_Print(void (*output)(void *, char *, int), 
 	 void * arg,
@@ -194,7 +202,29 @@ lp_Print(void (*output)(void *, char *, int),
 	    length = PrintString(buf, s, width, ladjust);
 	    OUTPUT(arg, buf, length);
 	    break;
-
+	
+	case 'T':
+		pt = (char*)va_arg(ap, char *);
+		OUTPUT(arg, '{', 1); // print {
+		int size = pt->size; // print size
+		length = PrintNum(buf, size, 10, negFlag, width, ladjust, padc, 0);
+		OUTPUT(arg, buf, length);
+		OUTPUT(arg, ',', 1); // print ,
+		c = pt->c; // print c
+		length = PrintChar(buf, c, width, ladjust);
+		OUTPUT(arg, buf, length);
+		OUTPUT(arg, ',', 1); // print ,
+		int k; // print array
+		int* arr = pt->array;
+		for (k = 0; k < size; k++) {
+			num = arr[k]; // print a[k]
+			length = PrintNum(buf, num, 10, negFlag, width, ladjust, padc, 0);
+			OUTPUT(arg, buf, length);
+			OUTPUT(arg, ',', 1); // print ,
+		}
+		OUTPUT(arg, '}', 1); // print }
+		break;
+	
 	 case '\0':
 	    fmt --;
 	    break;

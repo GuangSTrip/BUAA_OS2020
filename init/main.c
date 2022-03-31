@@ -11,11 +11,21 @@
 
 #include <printf.h>
 #include <pmap.h>
+struct my_struct{
+	int size;
+	char c;
+	int array[1000];
+}t1,t2;
 
 int main()
 {
 	printf("main.c:\tmain is start ...\n");
-
+//lab1-2-exam
+	t1.size=3; t1.c='b'; t1.array[0]=0; t1.array[1]=1; t1.array[2]=2;
+	t2.size=2; t2.c='Q'; t2.array[0]=-1; t2.array[1]=-2;
+	printf("%T\n",&t1);
+	printf("%04T\n",&t2);
+		
 	mips_init();
 	panic("main is over is error!");
 
