@@ -30,7 +30,7 @@ void mips_detect_memory()
 	maxpa = 0x04000000; // 1 << 26 64MB
         basemem = 0x04000000; // 1 << 26
         npage = 0x00004000; // 1 << 26 >> PGSHIFT  4KB 
-        extmen = 0;
+        extmem = 0;
 	// Step 2: Calculate corresponding npage value.
 
 	printf("Physical memory: %dK available, ", (int)(maxpa / 1024));
@@ -179,7 +179,7 @@ void page_init(void)
 {
 	/* Step 1: Initialize page_free_list. */
 	/* Hint: Use macro `LIST_INIT` defined in include/queue.h. */
-	LIST_INIT(page_free_list);
+	LIST_INIT(&page_free_list);
 	/* Step 2: Align `freemem` up to multiple of BY2PG. */
 	freemem = ROUND(freemem, BY2PG);
 	
