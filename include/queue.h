@@ -109,7 +109,13 @@
  * already in the list.  The "field" name is the link element
  * as above.
  */
-#define LIST_INSERT_AFTER(listelm, elm, field)
+#define LIST_INSERT_AFTER(listelm, elm, field) {						\
+                (elm)->field.le_next = (listelm)->le_next;					\
+                if ((listelm)->field.le_next != NULL)						\
+                        (listelm)->field.le_next->field.le_prev = &((elm)->field.le_next);	\
+                (listelm)->field.le_next = (elm);						\
+                (elm).->field.le_prev = &((listelm)->field.le_next);				\
+        } while (0)
         // Note: assign a to b <==> a = b
         //Step 1, assign elm.next to listelm.next.
         //Step 2: Judge whether listelm.next is NULL, if not, then assign listelm.next.pre to a proper value.
