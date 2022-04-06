@@ -110,7 +110,7 @@
  * as above.
  */
 #define LIST_INSERT_AFTER(listelm, elm, field) {						\
-                (elm)->field.le_next = (listelm)->le_next;					\
+                (elm)->field.le_next = (listelm)->field.le_next;					\
                 if ((listelm)->field.le_next != NULL)						\
                         (listelm)->field.le_next->field.le_prev = &((elm)->field.le_next);	\
                 (listelm)->field.le_next = (elm);						\
@@ -164,7 +164,7 @@
 			(elm)->field.le_prev = &LIST_FIRST((head));				\
 		}										\
 		(elm)->field.le_next = NULL;							\
-	while (0)
+	} while (0)
 /* finish your code here. */
 
 
