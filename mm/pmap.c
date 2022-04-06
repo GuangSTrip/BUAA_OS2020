@@ -186,11 +186,12 @@ void page_init(void)
 	/* Step 3: Mark all memory blow `freemem` as used(set `pp_ref`
 	 * filed to 1) */
 	int g = PADDR(freemem) >> PGSHIFT;
-	for (int i = 0; i < size; i++) 
+	int i;
+	for (i = 0; i < g; i++) 
 		pages[i].pp_ref = 1;	
 
 	/* Step 4: Mark the other memory as free. */
-	for (int i = g; i < npage; i++) {
+	for (i = g; i < npage; i++) {
 		pages[i].pp_ref = 0;
 		LIST_INSERT_HEAD(&page_free_list, &(pages[i]), pp_link);
 	}
