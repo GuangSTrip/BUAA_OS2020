@@ -156,7 +156,7 @@
 		if (LIST_FIRST((head)) != NULL) {						\
 			(elm)->field.le_next = LIST_FIRST((head));				\
 			while ((elm)->field.le_next->field.le_next != NULL)			\
-				(elm)-field.le_next = (elm)->field.le_next->field.le_next;	\
+				(elm)->field.le_next = (elm)->field.le_next->field.le_next;	\
 			(elm)->field.le_prev = &((elm)->field.le_next->field.le_next);		\
 			(elm)->field.le_next->field.le_next = (elm);				\
 		} else {									\
