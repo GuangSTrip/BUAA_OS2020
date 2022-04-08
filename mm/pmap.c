@@ -278,17 +278,17 @@ int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte)
 	Pde *pgdir_entryp;
 	Pte *pgtable;
 	struct Page *ppage;
-
+	int ret;
 	/* Step 1: Get the corresponding page directory entry and page table. */
-	pgdir_entryp T= pgdir + PDX(va);
+	pgdir_entryp = pgdir + PDX(va);
 
 	/* Step 2: If the corresponding page table is not exist(valid) and parameter `create`
 	 * is set, create one. And set the correct permission bits for this new page table.
 	 * When creating new page table, maybe out of memory. */
-	if ((*pgdir_entry & PTE_V) == 0) {
+	if ((*pgdir_entryp & PTE_V) == 0) {
 		if (create) {
-			if ((ret = page_alloc(&ppTage)) < 0) return ret;
-			*pgdir_entry = page2pa(ppTage) | PTE_V | PTE_R;
+			if ((ret = page_alloc(&ppage)) < 0) return ret;
+			*pgdir_entryp = page2pa(ppage) | PTE_V | PTE_R;
 			ppage->pp_ref++; //reference++ 
 		} else {
 			*ppte = 0;
