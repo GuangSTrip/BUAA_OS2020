@@ -105,7 +105,7 @@ void buddy_free(u_int pa) {
 		if (!(i->used) && !(buddy_temp->used) && (i->len == buddy_temp->len) && i->len != 10) {
 			last->used = 0;
 			LIST_REMOVE(i, pp_link);
-			LIST_REMOVE(buddy_temp, link);
+			LIST_REMOVE(buddy_temp, pp_link);
 			buddy_temp = last;
 			find = 1;
 		}
