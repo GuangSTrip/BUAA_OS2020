@@ -18,6 +18,106 @@ static u_long freemem;
 
 static struct Page_list page_free_list;	/* Free list of physical pages */
 
+//lab2-1-Extra
+struct Buddy *buddys;
+int g = 8;
+static struct Page_list buddy_free_list;
+void buddy_init(void) {
+	LIST_INIT(&buddy_free_list);
+	
+	int i;
+	for (i = 0;i < 8;i++) {
+		buddys[i].pp_ref = 0;
+		buddys[i].used = 0;
+		buddys[i].len = 10;
+		buddys[i].addr = (1 << 25)  + (1<<22) * i;
+		LIST_INSERT_HEAD(&buddy_free_list, &(buddys[i]), pp_link);
+	}
+}
+
+int buddy_alloc(u_int size, u_int *pa, u_char *pi) {
+	struct Buddy *buddy_temp;
+	int find = 0;
+	if (LIST_EMPTY(&buddy_free_list))
+		return -1;
+	buddy_temp = LIST_FIRST(&buddy_free_list);
+	while (buddy_temp != NULL) {
+		if ((1 << (buddy_temp->len + 12)) >= size) {
+			find = 1;
+			break;	
+		}
+		buddy_temp = LIST_NEXT(buddy_temp, pp_link);
+	}
+	if (!find)
+		return -1;
+	while ((1 << (buddy_temp->len + 11)) >= size && buddy_temp->len > 0) {
+		buddy_temp->used = 1;
+		////
+		buddys[g].pp_ref = 0;
+		buddys[g].used = 0;
+		buddys[g].len = temp->len - 1;
+		buddys[g].addr = temp->addr;
+		LIST_INSERT_AFTER(&buddys[g], buddy_temp, pp_link);
+		g++;
+		////
+		buddys[g].pp_ref = 0;
+		buddys[g].used = 0;
+                buddys[g].len = temp->len - 1;
+                buddys[g].addr = temp->addr + (1 << (buddy_temp->len + 11));
+                LIST_INSERT_AFTER(&buddys[g], buddy_temp, pp_link);
+		g++;
+		////
+		buddy_temp = &buddys[g - 2];
+	}
+	//LIST_REMOVE(buddy_temp, pp_link);
+ 	temp->used = 1;
+	pa = buddy_temp->addr;
+	*pi = buddy_temp->len;
+	return 0;
+}
+
+void buddy_free(u_int pa) {
+	struct Buddy *buddy_temp;
+	struct Buddy *i;
+	struct Buddy *last;
+	struct Buddy *b;
+	int find;
+	buddy_temp = LIST_FIRST(&buddy_free_list);
+	while (buddy_temp != NULL) {
+		if (buddy_temp->addr == pa && (LIST_NEXT(buddy_temp, pp_link))->addr != pa) //The problem has promised it to be found
+			break; 
+		buddy_temp = LIST_NEXT(buddy_temp, pp_link);
+	}
+	buddy_temp->used = 0;
+	if (LIST_FIRT(&buddy_free_list) == buddy_temp)
+		return;
+	////
+	find = 1;
+	while (find) {
+		find = 0;
+		i = LIST_FIRST(&buddy_free_list);
+		while (LIST_NEXT(i, pp_link) != buddy_temp && LIST_NEXT(i, pp_link) != NULL) {
+			last = i;
+			i = LIST_NEXT(i, pp_link);
+		}
+		//prev & next
+		b = LIST_NEXT(buddy_temp, pp_link);
+		if (!(i->used) && !(buddy_temp->used) && (i->len == buddy_temp->len) && i->len != 10) {
+			last->used = 0;
+			LIST_REMOVE(i, pp_link);
+			LIST_REMOVE(buddy_temp, link);
+			buddy_temp = last;
+			find = 1;
+		} else if (!(b->used) && !(buddy_temp->used) && (b->len == buddy_temp->len) && b->len != 10) {
+			i->used = 0;
+			LIST_REMOVE(b, pp_link);
+			LIST_REMOVE(buddy_temp, pp_link);
+			buddy_temp = i;
+			find = 1;
+		}
+
+	}
+}
 
 /* Exercise 2.1 */
 /* Overview:

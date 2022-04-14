@@ -10,6 +10,15 @@
 LIST_HEAD(Page_list, Page);
 typedef LIST_ENTRY(Page) Page_LIST_entry_t;
 
+//lab2-1-Extra
+struct Buddy {
+	Page_List_entry_t pp_link;
+	u_short pp_ref;
+	u_int len;
+	u_int addr;
+	int used;
+}
+
 struct Page {
 	Page_LIST_entry_t pp_link;	/* free list link */
 
@@ -101,6 +110,11 @@ void tlb_invalidate(Pde *pgdir, u_long va);
 void boot_map_segment(Pde *pgdir, u_long va, u_long size, u_long pa, int perm);
 
 extern struct Page *pages;
+
+//lab2-1-Extra
+void buddy_init(void);
+int buddy_alloc(u_int size, u_int *pa, u_char *pi);
+void buddy_free(u_int pa);
 
 
 #endif /* _PMAP_H_ */
