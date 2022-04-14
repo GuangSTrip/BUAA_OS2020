@@ -12,7 +12,7 @@ typedef LIST_ENTRY(Page) Page_LIST_entry_t;
 
 //lab2-1-Extra
 struct Buddy {
-	Page_List_entry_t pp_link;
+	Page_LIST_entry_t pp_link;
 	u_short pp_ref;
 	u_int len;
 	u_int addr;
