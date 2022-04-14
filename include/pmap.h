@@ -9,10 +9,10 @@
 
 LIST_HEAD(Page_list, Page);
 typedef LIST_ENTRY(Page) Page_LIST_entry_t;
-
+typedef LIST_ENTRY(Buddy) Buddy_LIST_entry_t;
 //lab2-1-Extra
 struct Buddy {
-	Page_LIST_entry_t pp_link;
+	Buddy_LIST_entry_t pp_link;
 	u_short pp_ref;
 	u_int len;
 	u_int addr;

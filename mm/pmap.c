@@ -70,7 +70,7 @@ int buddy_alloc(u_int size, u_int *pa, u_char *pi) {
 		buddy_temp = &buddys[g - 2];
 	}
 	//LIST_REMOVE(buddy_temp, pp_link);
- 	temp->used = 1;
+ 	buddy_temp->used = 1;
 	pa = buddy_temp->addr;
 	*pi = buddy_temp->len;
 	return 0;
