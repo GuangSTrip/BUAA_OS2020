@@ -89,7 +89,7 @@ void buddy_free(u_int pa) {
 		buddy_temp = LIST_NEXT(buddy_temp, pp_link);
 	}
 	buddy_temp->used = 0;
-	if (LIST_FIRT(&buddy_free_list) == buddy_temp)
+	if (LIST_FIRST(&buddy_free_list) == buddy_temp)
 		return;
 	////
 	find = 1;
