@@ -17,14 +17,14 @@ struct Page *pages;
 static u_long freemem;
 
 static struct Page_list page_free_list;	/* Free list of physical pages */
-
+static void *alloc(u_int n, u_int align, int clear);
 //lab2-1-Extra
 struct Buddy *buddys;
 int g = 8;
 static struct Page_list buddy_free_list;
 void buddy_init(void) {
 	LIST_INIT(&buddy_free_list);
-	
+	buddys = (struct Buddy *)alloc(npage * sizeof(struct Buddy), BY2PG, 1);	
 	int i;
 	for (i = 0;i < 8;i++) {
 		buddys[i].pp_ref = 0;
@@ -71,7 +71,7 @@ int buddy_alloc(u_int size, u_int *pa, u_char *pi) {
 	}
 	//LIST_REMOVE(buddy_temp, pp_link);
  	buddy_temp->used = 1;
-	pa = buddy_temp->addr;
+	*pa = buddy_temp->addr;
 	*pi = buddy_temp->len;
 	return 0;
 }
@@ -121,9 +121,9 @@ void mips_detect_memory()
 {
 	/* Step 1: Initialize basemem.
 	 * (When use real computer, CMOS tells us how many kilobytes there are). */
-	maxpa = 0x04000000; // 1 << 26 64MB
-        basemem = 0x04000000; // 1 << 26
-        npage = 0x00004000; // 1 << 26 >> PGSHIFT  4KB 
+	maxpa = 0x02000000; // 1 << 26 64MB
+        basemem = 0x02000000; // 1 << 26
+        npage = 0x00002000; // 1 << 26 >> PGSHIFT  4KB 
         extmem = 0;
 	// Step 2: Calculate corresponding npage value.
 
