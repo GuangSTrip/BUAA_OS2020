@@ -55,15 +55,15 @@ int buddy_alloc(u_int size, u_int *pa, u_char *pi) {
 		////
 		buddys[g].pp_ref = 0;
 		buddys[g].used = 0;
-		buddys[g].len = temp->len - 1;
-		buddys[g].addr = temp->addr;
+		buddys[g].len = buddy_temp->len - 1;
+		buddys[g].addr = buddy_temp->addr;
 		LIST_INSERT_AFTER(&buddys[g], buddy_temp, pp_link);
 		g++;
 		////
 		buddys[g].pp_ref = 0;
 		buddys[g].used = 0;
-                buddys[g].len = temp->len - 1;
-                buddys[g].addr = temp->addr + (1 << (buddy_temp->len + 11));
+                buddys[g].len = buddy_temp->len - 1;
+                buddys[g].addr = buddy_temp->addr + (1 << (buddy_temp->len + 11));
                 LIST_INSERT_AFTER(&buddys[g], buddy_temp, pp_link);
 		g++;
 		////
@@ -107,12 +107,6 @@ void buddy_free(u_int pa) {
 			LIST_REMOVE(i, pp_link);
 			LIST_REMOVE(buddy_temp, link);
 			buddy_temp = last;
-			find = 1;
-		} else if (!(b->used) && !(buddy_temp->used) && (b->len == buddy_temp->len) && b->len != 10) {
-			i->used = 0;
-			LIST_REMOVE(b, pp_link);
-			LIST_REMOVE(buddy_temp, pp_link);
-			buddy_temp = i;
 			find = 1;
 		}
 
