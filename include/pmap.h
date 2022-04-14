@@ -17,7 +17,7 @@ struct Buddy {
 	u_int len;
 	u_int addr;
 	int used;
-}
+};
 
 struct Page {
 	Page_LIST_entry_t pp_link;	/* free list link */
