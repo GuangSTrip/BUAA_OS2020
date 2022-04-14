@@ -19,7 +19,9 @@ struct Page {
 	// do not have valid reference count fields.
 
 	u_short pp_ref;
-};
+	//lab2-1-exam status
+	int pro;
+};	
 
 extern struct Page *pages;
 
@@ -102,5 +104,8 @@ void boot_map_segment(Pde *pgdir, u_long va, u_long size, u_long pa, int perm);
 
 extern struct Page *pages;
 
+//lab2-1-exam
+int page_protect(struct Page *pp);
+int page_status_query(struct Page *pp);
 
 #endif /* _PMAP_H_ */
