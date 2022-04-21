@@ -18,6 +18,17 @@ static u_long freemem;
 
 static struct Page_list page_free_list;	/* Free list of physical pages */
 
+//lab2-2-exam
+/*int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
+	int num = 0, np = 0;
+	int i;
+	Pte *pgtable;
+	for (int i = 0x80400000, np = 0;i <= 0x83ffffff;i += 4096) {
+		
+	} 
+}*/
+
+
 
 /* Exercise 2.1 */
 /* Overview:
@@ -427,6 +438,35 @@ void tlb_invalidate(Pde *pgdir, u_long va)
 		tlb_out(PTE_ADDR(va));
 	}
 }
+
+//***************************************
+//lab2-2-exam
+int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
+        int num = 0, np = 0;
+        int i, ret;
+        Pte *pgtable;
+        for (int i = 0x80400000, np = 0;i <= 0x83ffffff;i += 4096) {
+		pgdir_walk(pgidr, i, 0, &pgtable);
+		if (pgtable != 0 && *pgtable & PTE_V) {
+			if (PTE_ADDR(*pgtable) == PTE_ADDR(page2pa(pp)) {
+				vpn_buffer[num++] = np;
+			}
+		} 
+		np++; 	
+        }
+	return num;
+}
+
+
+
+
+
+
+
+//*********************************
+
+
+
 
 void physical_memory_manage_check(void)
 {
