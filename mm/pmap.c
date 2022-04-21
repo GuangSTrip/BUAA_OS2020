@@ -349,6 +349,7 @@ int page_insert(Pde *pgdir, struct Page *pp, u_long va, u_int perm)
 		} else	{
 			tlb_invalidate(pgdir, va);
 			*pgtable_entry = (page2pa(pp) | PERM);
+			pp->fr[pp->num++] = (int)va>>12;
 			return 0;
 		}
 	}
@@ -363,6 +364,7 @@ int page_insert(Pde *pgdir, struct Page *pp, u_long va, u_int perm)
 		return ret;
 	/* Step 3.1 Check if the page can be insert, if can’t return -E_NO_MEM */
 	*pgtable_entry = page2pa(pp) | PERM;
+	pp->fr[pp->num++] = (int)va>>12;
 	/* Step 3.2 Insert page and increment the pp_ref */
 	pp->pp_ref++;
 	return 0;
@@ -455,11 +457,13 @@ int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
         int num = 0, np = 0;
         int i;
         Pte *pgtable;
-       for (i = 0;i < recnum;i = i++) {
-		pgdir_walk(pgdir, rec[i], 0, &pgtable);
+       //for (i = 0;i < recnum;i = i++) {
+	//for (i = 0,np = 0;i <= 0x7fffffff;i+=4096) {
+	for (i = 0;i < pp->num;i++) {
+		pgdir_walk(pgdir, (u_long)(pp->fr[i] << 12), 0, &pgtable);
 		if (pgtable != 0 /*&& (*pgtable & PTE_V)*/) {
 			if (PTE_ADDR(*pgtable) ==  PTE_ADDR(page2pa(pp))) {
-				vpn_buffer[num++] = (int)rec[i] >> 12;
+				vpn_buffer[num++] = pp->fr[i];
 			}
 		} 
 		np++; 	
