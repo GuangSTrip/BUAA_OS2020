@@ -30,7 +30,8 @@ static void inverted_page_lookup_test(){
 extern struct Page *pages;
 int a[10], len, i;
 page_insert(pgdir, pages + 2333, 0x23500000, 0);
-page_insert(pgdir, pages, 0x12340000,0);
+page_insert(pgdir, pages + 2333, 0xfffff000, 0);
+//page_insert(pgdir, pages, 0x12340000,0);
 //printf("%d\n", len = inverted_page_lookup(pgdir, pages, a));
 //for(i = 0;i < len;i++) printf("%x\n", a[i]);
 page_insert(pgdir, pages + 2333, 0x23400000, 0);
