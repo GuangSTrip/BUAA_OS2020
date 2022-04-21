@@ -289,7 +289,6 @@ This function has something in common with function `boot_pgdir_walk`.*/
 int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte)
 {
 	Pde *pgdir_entryp;
-	Pte *pgtable;
 	struct Page *ppage;
 	int ret;
 	/* Step 1: Get the corresponding page directory entry and page table. */
@@ -456,13 +455,13 @@ void tlb_invalidate(Pde *pgdir, u_long va)
 int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
         int num = 0, np = 0;
         u_long i;
-        Pte *pgtable;
+        Pte *pgtable_en;
        //for (i = 0;i < recnum;i = i++) {
 	for (i = 0,np = 0;i <= 0xfffff;i++) {
 	//for (i = 0;i < pp->num;i++) {
-		pgdir_walk(pgdir, (i<<12), 0, &pgtable);
-		if (pgtable != 0 && (*pgtable & PTE_V)) {
-			if (pa2page(*pgtable) ==  pp) {
+		pgdir_walk(pgdir, (i<<12), 0, &pgtable_en);
+		if (pgtable_en != 0 && (*pgtable_en & PTE_V)) {
+			if (pa2page(*pgtable_en) ==  pp) {
 				vpn_buffer[num++] = np;
 			}
 		} 
