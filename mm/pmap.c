@@ -455,15 +455,15 @@ void tlb_invalidate(Pde *pgdir, u_long va)
 //lab2-2-exam
 int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
         int num = 0, np = 0;
-        int i;
+        u_long i;
         Pte *pgtable;
        //for (i = 0;i < recnum;i = i++) {
-	//for (i = 0,np = 0;i <= 0x7fffffff;i+=4096) {
-	for (i = 0;i < pp->num;i++) {
-		pgdir_walk(pgdir, (u_long)(pp->fr[i] << 12), 0, &pgtable);
+	for (i = 0,np = 0;i <= 0xffff0000;i+=4096) {
+	//for (i = 0;i < pp->num;i++) {
+		pgdir_walk(pgdir, (u_long)i, 0, &pgtable);
 		if (pgtable != 0 /*&& (*pgtable & PTE_V)*/) {
 			if (PTE_ADDR(*pgtable) ==  PTE_ADDR(page2pa(pp))) {
-				vpn_buffer[num++] = pp->fr[i];
+				vpn_buffer[num++] = np;
 			}
 		} 
 		np++; 	
