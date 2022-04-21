@@ -9,7 +9,7 @@
  *
  */
 
-/*#include <printf.h>
+#include <printf.h>
 #include <pmap.h>
 
 int main()
@@ -20,8 +20,8 @@ int main()
 	panic("main is over is error!");
 
 	return 0;
-}*/
-#include <printf.h>
+}
+/*#include <printf.h>
 #include <pmap.h>
 
 int main()
@@ -177,4 +177,4 @@ int main()
 	panic("main is over is error!");
 
 	return 0;
-}
+}*/
