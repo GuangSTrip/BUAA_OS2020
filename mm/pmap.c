@@ -332,14 +332,14 @@ int page_insert(Pde *pgdir, struct Page *pp, u_long va, u_int perm)
 	Pte *pgtable_entry;
 	PERM = perm | PTE_V;
 	int ret;
-	int find = 0,i;
-	for (i = 0;i < recnum;i++)
-		if (rec[i] == va) {
-			find = 1;
-			break;
-		}
-	if (!find)
-		rec[recnum++] = va;
+	//int find = 0,i;
+	//for (i = 0;i < recnum;i++)
+	//	if (rec[i] == va) {
+	//		find = 1;
+	//		break;
+	//	}
+	//if (!find)
+	//	rec[recnum++] = va;
 	/* Step 1: Get corresponding page table entry. */
 	pgdir_walk(pgdir, va, 0, &pgtable_entry);
 
@@ -349,7 +349,7 @@ int page_insert(Pde *pgdir, struct Page *pp, u_long va, u_int perm)
 		} else	{
 			tlb_invalidate(pgdir, va);
 			*pgtable_entry = (page2pa(pp) | PERM);
-			pp->fr[pp->num++] = (int)va>>12;
+			//pp->fr[pp->num++] = (int)va>>12;
 			return 0;
 		}
 	}
@@ -364,7 +364,7 @@ int page_insert(Pde *pgdir, struct Page *pp, u_long va, u_int perm)
 		return ret;
 	/* Step 3.1 Check if the page can be insert, if can’t return -E_NO_MEM */
 	*pgtable_entry = page2pa(pp) | PERM;
-	pp->fr[pp->num++] = (int)va>>12;
+	//pp->fr[pp->num++] = (int)va>>12;
 	/* Step 3.2 Insert page and increment the pp_ref */
 	pp->pp_ref++;
 	return 0;
