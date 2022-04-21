@@ -10,6 +10,8 @@ u_long maxpa;            /* Maximum physical address */
 u_long npage;            /* Amount of memory(in pages) */
 u_long basemem;          /* Amount of base memory(in bytes) */
 u_long extmem;           /* Amount of extended memory(in bytes) */
+u_long rec[1000000];
+int recnum = 0;
 
 Pde *boot_pgdir;
 
@@ -330,6 +332,14 @@ int page_insert(Pde *pgdir, struct Page *pp, u_long va, u_int perm)
 	Pte *pgtable_entry;
 	PERM = perm | PTE_V;
 	int ret;
+	int find = 0,i;
+	for (i = 0;i < recnum;i++)
+		if (rec[i] == va) {
+			find = 1;
+			break;
+		}
+	if (!find)
+		rec[recnum++] = va;
 	/* Step 1: Get corresponding page table entry. */
 	pgdir_walk(pgdir, va, 0, &pgtable_entry);
 
@@ -445,15 +455,23 @@ int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
         int num = 0, np = 0;
         int i;
         Pte *pgtable;
-       for (i = 0x00000000, np = 0x0;i <= 0xfffff000;i = i + 0x1000) {
-		pgdir_walk(pgdir, i, 0, &pgtable);
+       for (i = 0;i < recnum;i = i++) {
+		pgdir_walk(pgdir, rec[i], 0, &pgtable);
 		if (pgtable != 0 /*&& (*pgtable & PTE_V)*/) {
 			if (PTE_ADDR(*pgtable) == page2pa(pp)) {
-				vpn_buffer[num++] = np;
+				vpn_buffer[num++] = (int)rec[i] >> 12;
 			}
 		} 
 		np++; 	
         }
+	int j,c;
+	for (i = 0;i < num;i++)
+		for (j = num - 1;j > i;j--)
+			if (vpn_buffer[i] > vpn_buffer[j]) {
+				c = vpn_buffer[i];
+				vpn_buffer[i] = vpn_buffer[j];
+				vpn_buffer[j] = c;
+			}
 	return num;
 }
 
