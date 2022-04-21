@@ -458,9 +458,9 @@ int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
         u_long i;
         Pte *pgtable;
        //for (i = 0;i < recnum;i = i++) {
-	for (i = 0,np = 0;i <= 0x2fff0000;i+=4096) {
+	for (i = 0,np = 0;i <= 0xfffff;i++) {
 	//for (i = 0;i < pp->num;i++) {
-		pgdir_walk(pgdir, (u_long)i, 0, &pgtable);
+		pgdir_walk(pgdir, (i<<12), 0, &pgtable);
 		if (pgtable != 0 /*&& (*pgtable & PTE_V)*/) {
 			if (PTE_ADDR(*pgtable) ==  PTE_ADDR(page2pa(pp))) {
 				vpn_buffer[num++] = np;
@@ -468,7 +468,7 @@ int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
 		} 
 		np++; 	
         }
-	int j,c;
+	/*int j,c;
 	for (i = 0;i < num;i++)
 		for (j = num - 1;j > i;j--)
 			if (vpn_buffer[i] > vpn_buffer[j]) {
@@ -476,6 +476,7 @@ int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
 				vpn_buffer[i] = vpn_buffer[j];
 				vpn_buffer[j] = c;
 			}
+	*/
 	return num;
 }
 
