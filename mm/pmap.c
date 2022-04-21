@@ -443,11 +443,11 @@ void tlb_invalidate(Pde *pgdir, u_long va)
 //lab2-2-exam
 int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
         int num = 0, np = 0;
-        int i, ret;
+        int i;
         Pte *pgtable;
-       for (i = 0x00000000, np = 0x0;i <= 0x40000000;i += 4096) {
+       for (i = 0x00000000, np = 0x0;i <= 0x40000000;i = i + 0x1000) {
 		pgdir_walk(pgdir, i, 0, &pgtable);
-		if (pgtable != 0 && (*pgtable & PTE_V)) {
+		if (pgtable != 0 /*&& (*pgtable & PTE_V)*/) {
 			if (PTE_ADDR(*pgtable) == page2pa(pp)) {
 				vpn_buffer[num++] = np;
 			}
