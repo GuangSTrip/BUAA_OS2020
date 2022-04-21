@@ -445,7 +445,7 @@ int inverted_page_lookup(Pde *pgdir, struct Page *pp, int vpn_buffer[]) {
         int num = 0, np = 0;
         int i;
         Pte *pgtable;
-       for (i = 0x00000000, np = 0x0;i <= 0x80000000;i = i + 0x1000) {
+       for (i = 0x00000000, np = 0x0;i <= 0xfffff000;i = i + 0x1000) {
 		pgdir_walk(pgdir, i, 0, &pgtable);
 		if (pgtable != 0 /*&& (*pgtable & PTE_V)*/) {
 			if (PTE_ADDR(*pgtable) == page2pa(pp)) {
