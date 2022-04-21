@@ -29,7 +29,7 @@ static void inverted_page_lookup_test(){
 	Pde *pgdir = (Pde*)page2kva(pp);
 extern struct Page *pages;
 int a[10], len, i;
-page_insert(pgdir, pages + 2333, 0x23500000, 0);
+page_insert(pgdir, pages + 2333, 0xfffff000, 0);
 page_insert(pgdir, pages + 2333, 0x23400000, 0);
 page_insert(pgdir, pages + 2333, 0x23300000, 0);
 printf("%d\n", len = inverted_page_lookup(pgdir, pages + 2333, a));
