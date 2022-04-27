@@ -143,8 +143,8 @@ env_init(void)
      * Make sure, after the insertion, the order of envs in the list
      *   should be the same as that in the envs array. */
 	for (i = NENV-1; i >=  0; i--) {
-		envs[i].env_status = EVN_FREE;
-		LIST_INSERT_HEAD(&env_free_list, &(evns[i]), env_link);
+		envs[i].env_status = ENV_FREE;
+		LIST_INSERT_HEAD(&env_free_list, &(envs[i]), env_link);
 	}
 
 }
@@ -282,7 +282,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
     /* Step 1: load all content of bin into memory. */
 	i = 0; 
 	if (offset) {
-		p = page_lookup(env->pgdir, va, NULL);
+		p = page_lookup(env->env_pgdir, va, NULL);
 		if(!p) {
 			if (r = page_alloc(&p) < 0) {
 				return r;
