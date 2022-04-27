@@ -311,7 +311,7 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 		return r;
 	}
 	size = (BY2PG < sgsize - i)? BY2PG : (sgsize - i);
-	if (r = page_insert(env->env_pgidr, p, va + i, PTE_V | PTE_R) < 0) {
+	if (r = page_insert(env->env_pgdir, p, va + i, PTE_V | PTE_R) < 0) {
 		return r;
 	}
 	i += BY2PG;
