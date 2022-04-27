@@ -379,7 +379,7 @@ env_create_priority(u_char *binary, int size, int priority)
 {
     struct Env *e;
     /* Step 1: Use env_alloc to alloc a new env. */
-	if (env_alloc(e, 0) < 0) {
+	if (env_alloc(&e, 0) < 0) {
 		return;
 	}
     /* Step 2: assign priority to the new env. */
@@ -401,6 +401,7 @@ env_create(u_char *binary, int size)
 {
      /* Step 1: Use env_create_priority to alloc a new env with priority 1 */
 	env_create_priority(binary, size, 1);
+	//printf("create end!\n");
 }
 
 /* Overview:
