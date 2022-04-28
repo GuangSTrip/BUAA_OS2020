@@ -689,10 +689,17 @@ int V(struct Env* e, int s) {
 }
 
 int get_status(struct Env* e) {
-	if (e->sr[1] || e->sr[2]) {
+	/*if (e->sr[1] || e->sr[2]) {
 		return 2;
 	} else if (e->inque) {
 		return 1;
+	} else {
+		return 3;
+	}*/
+	if (e->inque) {
+		return 1;
+	} else if (e->sr[1] || e->sr[2]) {
+		return 2;
 	} else {
 		return 3;
 	}
