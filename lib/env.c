@@ -641,13 +641,13 @@ u_int exam_env_run(struct Env *e) {
         int i;
         int index;
         int inner;
-        if ((e->env_asid >> 26) != bbnum) {
+        if ((e->env_asid >> 6) != bbnum) {
                 i = e->env_asid & 0x3f;
                 index = i >> 5;
                 inner = i & 31;
                 if ((asid_bitmap[index] & (1 << inner)) == 0) {
                         asid_bitmap[index] |= 1 << inner;
-                        e->env_asid = (bbnum << 26) | i;
+                        e->env_asid = (bbnum << 6) | i;
                 } else {
                         i = asid_alloc();
                         if (i == 64) {
@@ -655,9 +655,9 @@ u_int exam_env_run(struct Env *e) {
                                 ans = 1;
                                 asid_bitmap[0] = 1;
                                 asid_bitmap[1] = 0;
-                                e->env_asid = (bbnum << 26);
+                                e->env_asid = (bbnum << 6);
                         } else {
-                                e->env_asid = (bbnum << 26) | i;
+                                e->env_asid = (bbnum << 6) | i;
                         }
                 }
         }
@@ -665,7 +665,7 @@ u_int exam_env_run(struct Env *e) {
 }
 
 void exam_env_free(struct Env *e) {
-        if ((e->env_asid >> 26) == bbnum) {
+        if ((e->env_asid >> 6) == bbnum) {
                 asid_free((e->env_asid & 0x3f));
         }
 }
