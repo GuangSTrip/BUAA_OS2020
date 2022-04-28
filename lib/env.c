@@ -682,8 +682,8 @@ int V(struct Env* e, int s) {
 	} else {
 		sr[s]++;
 	}
-	e->sr[s]--;
-	e->inque = 0;
+	if(e->sr[s] > 0)
+		e->sr[s]--;
 
 	return 0;
 }
