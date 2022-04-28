@@ -245,7 +245,9 @@ env_alloc(struct Env **new, u_int parent_id)
 	e->env_id = mkenvid(e);
 	e->env_parent_id = parent_id;
 	e->env_status = ENV_RUNNABLE;
-	e->sr = 0;
+	e->sr[1] = 0;
+	e->sr[2] = 0;
+	e->inque = 0;
     /* Step 4: Focus on initializing the sp register and cp0_status of env_tf field, located at this new Env. */
     e->env_tf.cp0_status = 0x10001004;
 	e->env_tf.regs[29] = USTACKTOP;
@@ -654,44 +656,45 @@ void S_init(int s, int num) {
 
 
 int P(struct Env* e, int s) {
-	if (e->sr == 4) {
+	if (e->inque == 1) {
 		return -1;
 	}
 	if (sr[s] > 0) {
 		sr[s]--;
-		e->sr = s;
+		e->sr[s] = 1;
 	} else {
 		LIST_INSERT_TAIL(&env_s_list[s], e, env_link);
-		e->sr = 4;
+		e->inque = 1;
 	}
 	return 0;
 }
 
 int V(struct Env* e, int s) {
 	struct Env* i;
-	if (e->sr == 4) {
+	if (e->inque == 1) {
 		return -1;
 	}
 	if (LIST_EMPTY(&env_s_list[s]) == 0) {
 		i = LIST_FIRST(&env_s_list[s]);
 		LIST_REMOVE(i, env_link);
-		i->sr = s;
+		i->sr[s] = 1;
+		i->inque = 0;
 	} else {
 		sr[s]++;
 	}
-	e->sr = 0;
+	e->sr[s] = 0;
+	e->inque = 0;
 
 	return 0;
 }
 
 int get_status(struct Env* e) {
-	int i = e->sr;
-	if (i == 1 || i == 2) {
+	if (e->sr[1] == 1 || e->sr[2] == 2) {
 		return 2;
-	} else if (i == 0) {
-		return 3;
-	} else {
+	} else if (e->inque) {
 		return 1;
+	} else {
+		return 3;
 	}
 }
 

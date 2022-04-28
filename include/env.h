@@ -43,7 +43,8 @@ struct Env {
 	u_int env_runs;			// number of times been env_run'ed
 	u_int env_nop;                  // align to avoid mul instruction
 	//3-1-Extra
-	u_int sr;
+	u_int sr[3];
+	u_int inque;
 };
 
 LIST_HEAD(Env_list, Env);
