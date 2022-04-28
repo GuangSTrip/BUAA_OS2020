@@ -20,8 +20,10 @@ extern char *KERNEL_SP;
 
 static u_int asid_bitmap[2] = {0}; // 64
 
-//lab 3-1-exam -----------------------------------------
 u_int bbnum = 0x4;
+
+//lab 3-1-exam -----------------------------------------
+/*u_int bbnum = 0x4;
 u_int exam_env_run(struct Env *e) {
 	int ans = 0;
 	int i;
@@ -54,7 +56,7 @@ void exam_env_free(struct Env *e) {
 	if ((e->env_asid >> 26) == bbnum) {
 		asid_free((e->env_asid & 0x3f));
 	}
-}
+}*/
 //-----------------------------------------------------
 
 
@@ -632,6 +634,42 @@ void env_check()
 
     printf("env_check() succeeded!\n");
 }
+
+//lab 3-1-exam -----------------------------------------
+u_int exam_env_run(struct Env *e) {
+        int ans = 0;
+        int i;
+        int index;
+        int inner;
+        if ((e->env_asid >> 26) != bbnum) {
+                i = e->env_asid & 0x3f;
+                index = i >> 5;
+                inner = i & 31;
+                if ((asid_bitmap[index] & (1 << inner)) == 0) {
+                        asid_bitmap[index] |= 1 << inner;
+                        e->env_asid = (bbnum << 26) | i;
+                } else {
+                        i = asid_alloc();
+                        if (i == 64) {
+                                bbnum++;
+                                ans = 1;
+                                asid_bitmap[0] = 1;
+                                asid_bitmap[1] = 0;
+                                e->env_asid = (bbnum << 26);
+                        } else {
+                                e->env_asid = (bbnum << 26) | i;
+                        }
+                }
+        }
+        return ans;
+}
+
+void exam_env_free(struct Env *e) {
+        if ((e->env_asid >> 26) == bbnum) {
+                asid_free((e->env_asid & 0x3f));
+        }
+}
+//-----------------------------------------------------
 
 void load_icode_check() {
     /* check_icode.c from init/init.c */
