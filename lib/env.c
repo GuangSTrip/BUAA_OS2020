@@ -20,6 +20,43 @@ extern char *KERNEL_SP;
 
 static u_int asid_bitmap[2] = {0}; // 64
 
+//lab 3-1-exam -----------------------------------------
+u_int bbnum = 0x4;
+u_int exam_env_run(struct Env *e) {
+	int ans = 0;
+	int i;
+	int index;
+	int inner;
+	if ((e->env_asid >> 26) != bbnum) {
+		i = e->env_asid & 0x3f;
+		index = i >> 5;
+		inner = i & 31;
+		if ((asid_bitmap[index] & (1 << inner)) == 0) {
+			asid_bitmap[index] |= 1 << inner;
+			e->env_asid = (bbnum << 26) | i;	
+		} else {
+			i = asid_alloc();
+			if (i == 64) {
+				bbnum++;
+				ans = 1;
+				asid_bitmap[0] = 1;
+				asid_bitmap[1] = 0;
+				e->env_asid = (bbnum << 26);
+			} else {
+				e->env_asid = (bbnum << 26) | i;
+			}
+		}
+	}
+	return ans;
+}
+
+void exam_env_free(struct Env *e) {
+	if ((e->env_asid >> 26) == bbnum) {
+		asid_free((e->env_asid & 0x3f));
+	}
+}
+//-----------------------------------------------------
+
 
 /* Overview:
  *  This function is to allocate an unused ASID
@@ -41,6 +78,7 @@ static u_int asid_alloc() {
             return i;
         }
     }
+	return i; //if full ,return 64   by 3-1-exam
     panic("too many processes!");
 }
 
@@ -66,10 +104,12 @@ static void asid_free(u_int i) {
  * Post-Condition:
  *  return e's envid on success
  */
+//lab3-1-exam
 u_int mkenvid(struct Env *e) {
-    u_int idx = e - envs;
-    u_int asid = asid_alloc();
-    return (asid << (1 + LOG2NENV)) | (1 << LOG2NENV) | idx;
+    	u_int idx = (u_int)e - (u_int)envs;
+    	idx /= sizeof(struct Env);
+	//u_int asid = asid_alloc();
+    return (1 << (LOG2NENV)) | idx;
 }
 
 /* Overview:
@@ -136,7 +176,9 @@ env_init(void)
     int i;
     /* Step 1: Initialize env_free_list. */
 	LIST_INIT(&env_free_list);
-
+	bbnum = 0x4;
+	asid_bitmap[0] = 0;
+	asid_bitmap[1] = 0;
     /* Step 2: Traverse the elements of 'envs' array,
      *   set their status as free and insert them into the env_free_list.
      * Choose the correct loop order to finish the insertion.
@@ -242,7 +284,8 @@ env_alloc(struct Env **new, u_int parent_id)
 	e->env_id = mkenvid(e);
 	e->env_parent_id = parent_id;
 	e->env_status = ENV_RUNNABLE;
-
+	//lab 3-1-exam
+	e->env_asid = 0;
     /* Step 4: Focus on initializing the sp register and cp0_status of env_tf field, located at this new Env. */
     e->env_tf.cp0_status = 0x10001004;
 	e->env_tf.regs[29] = USTACKTOP;
