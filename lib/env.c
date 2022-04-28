@@ -20,6 +20,11 @@ extern char *KERNEL_SP;
 
 static u_int asid_bitmap[2] = {0}; // 64
 
+//lab3-1-Extra
+u_int sr[3];
+struct Env_list env_s_list[3];
+//struct Evn_list env_s_list2;
+
 
 /* Overview:
  *  This function is to allocate an unused ASID
@@ -136,7 +141,6 @@ env_init(void)
     int i;
     /* Step 1: Initialize env_free_list. */
 	LIST_INIT(&env_free_list);
-
     /* Step 2: Traverse the elements of 'envs' array,
      *   set their status as free and insert them into the env_free_list.
      * Choose the correct loop order to finish the insertion.
@@ -194,7 +198,6 @@ env_setup_vm(struct Env *e)
      */
 	e->env_pgdir = pgdir;
 	e->env_cr3 = PADDR(pgdir);
-
     /* UVPT maps the env's own page table, with read-only permission.*/
     e->env_pgdir[PDX(UVPT)]  = e->env_cr3 | PTE_V;
     return 0;
@@ -242,7 +245,7 @@ env_alloc(struct Env **new, u_int parent_id)
 	e->env_id = mkenvid(e);
 	e->env_parent_id = parent_id;
 	e->env_status = ENV_RUNNABLE;
-
+	e->sr = 0;
     /* Step 4: Focus on initializing the sp register and cp0_status of env_tf field, located at this new Env. */
     e->env_tf.cp0_status = 0x10001004;
 	e->env_tf.regs[29] = USTACKTOP;
@@ -642,4 +645,64 @@ void load_icode_check() {
     env_free(e);
     printf("load_icode_check() succeeded!\n");
 }
+
+//lab3-1-Extra -------------------------------------------------------------------------------
+void S_init(int s, int num) {
+	sr[s] = num;
+	LIST_INIT(&env_s_list[s]);
+}
+
+
+int P(struct Env* e, int s) {
+	if (e->sr == 4) {
+		return -1;
+	}
+	if (sr[s] > 0) {
+		sr[s]--;
+		e->sr = s;
+	} else {
+		LIST_INSERT_TAIL(&env_s_list[s], e, env_link);
+		e->sr = 4;
+	}
+	return 0;
+}
+
+int V(struct Env* e, int s) {
+	struct Env* i;
+	if (e->sr == 4) {
+		return -1;
+	}
+	if (LIST_EMPTY(&env_s_list[s]) == 0) {
+		i = LIST_FIRST(&env_s_list[s]);
+		LIST_REMOVE(i, env_link);
+		i->sr = s;
+	} else {
+		sr[s]++;
+	}
+	e->sr = 0;
+
+	return 0;
+}
+
+int get_status(struct Env* e) {
+	int i = e->sr;
+	if (i == 1 || i == 2) {
+		return 2;
+	} else if (i == 0) {
+		return 3;
+	} else {
+		return 1;
+	}
+}
+
+int my_env_create() {
+	struct Env *e;
+	int r;
+	if (r = env_alloc(&e, 0) < 0) {
+		return -1;
+	}
+	return e->env_id;
+}
+
+
 
