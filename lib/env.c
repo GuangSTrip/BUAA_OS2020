@@ -661,7 +661,7 @@ int P(struct Env* e, int s) {
 	}
 	if (sr[s] > 0) {
 		sr[s]--;
-		e->sr[s] = 1;
+		e->sr[s]++;
 	} else {
 		LIST_INSERT_TAIL(&env_s_list[s], e, env_link);
 		e->inque = 1;
@@ -677,19 +677,19 @@ int V(struct Env* e, int s) {
 	if (LIST_EMPTY(&env_s_list[s]) == 0) {
 		i = LIST_FIRST(&env_s_list[s]);
 		LIST_REMOVE(i, env_link);
-		i->sr[s] = 1;
+		i->sr[s]++;
 		i->inque = 0;
 	} else {
 		sr[s]++;
 	}
-	e->sr[s] = 0;
+	e->sr[s]--;
 	e->inque = 0;
 
 	return 0;
 }
 
 int get_status(struct Env* e) {
-	if (e->sr[1] == 1 || e->sr[2] == 1) {
+	if (e->sr[1] || e->sr[2]) {
 		return 2;
 	} else if (e->inque) {
 		return 1;
