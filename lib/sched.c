@@ -16,7 +16,29 @@ void sched_yield(void)
 {
     static int count = 0; // remaining time slices of current env
     static int point = 0; // current env_sched_list index
-    
+ 	extern struct Env_list env_sched_list[];
+	static struct Env *env = NULL;
+	while (count <= 0 || env == NULL || (env != NULL && env_status != ENV_RUNNABLE)) {
+		count = 0;
+		if (env != NULL) {
+			LIST_REMOVE(env, env_sched_link);
+			if (env->status != ENV_FREE) {
+				LIST_INSERT_TAIL(&env_sched_list[1-point], env, env_sched_link);
+			}
+		}
+		if (LIST_EMPTY(&env_sched_list[point])) {
+			point = 1 - point;
+		}
+		if (LIST_EMPTY(&env_sched_list[point])) {
+			panic("^^^^^^^there is no runnable env^^^^^^^by sched_yield");
+		}
+		env = LIST_FIRST(&env_sched_list[point]);
+		if (env != NULL) {
+			count = env->env_pri;
+		}
+	}
+	count--;
+	env_run(env);
     /*  hint:
      *  1. if (count==0), insert `e` into `env_sched_list[1-point]`
      *     using LIST_REMOVE and LIST_INSERT_TAIL.
