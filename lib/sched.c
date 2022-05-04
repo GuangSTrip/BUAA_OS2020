@@ -18,11 +18,11 @@ void sched_yield(void)
     static int point = 0; // current env_sched_list index
  	extern struct Env_list env_sched_list[];
 	static struct Env *env = NULL;
-	while (count <= 0 || env == NULL || (env != NULL && env_status != ENV_RUNNABLE)) {
+	while (count <= 0 || env == NULL || (env != NULL && env->env_status != ENV_RUNNABLE)) {
 		count = 0;
 		if (env != NULL) {
 			LIST_REMOVE(env, env_sched_link);
-			if (env->status != ENV_FREE) {
+			if (env->env_status != ENV_FREE) {
 				LIST_INSERT_TAIL(&env_sched_list[1-point], env, env_sched_link);
 			}
 		}
