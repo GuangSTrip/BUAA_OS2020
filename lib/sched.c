@@ -12,11 +12,12 @@
  *  3. CANNOT use `return` statement!
  */
 /*** exercise 3.15 ***/
+extern struct Env_list env_sched_list[];
+extern struct Env* curenv;
 void sched_yield(void)
 {
     static int count = 0; // remaining time slices of current env
     static int point = 0; // current env_sched_list index
- 	extern struct Env_list env_sched_list[];
 	static struct Env *env = NULL;
 	while (count <= 0 || env == NULL || (env != NULL && env->env_status != ENV_RUNNABLE)) {
 		count = 0;
@@ -30,7 +31,8 @@ void sched_yield(void)
 			point = 1 - point;
 		}
 		if (LIST_EMPTY(&env_sched_list[point])) {
-			panic("^^^^^^^there is no runnable env^^^^^^^by sched_yield");
+			//panic("^^^^^^^there is no runnable env^^^^^^^by sched_yield");
+			continue;
 		}
 		env = LIST_FIRST(&env_sched_list[point]);
 		if (env != NULL) {
@@ -39,6 +41,7 @@ void sched_yield(void)
 	}
 	count--;
 	env_run(env);
+	//env_run(LIST_FIRST(env_sched_list));
     /*  hint:
      *  1. if (count==0), insert `e` into `env_sched_list[1-point]`
      *     using LIST_REMOVE and LIST_INSERT_TAIL.

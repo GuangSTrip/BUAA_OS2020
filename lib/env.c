@@ -494,8 +494,8 @@ env_run(struct Env *e)
 	if (curenv) {
 		struct Trapframe *old;
 		old = (struct Trapframe *)(TIMESTACK - sizeof(struct Trapframe));
-		bcopy((void*) old, (void*) &(e->env_tf), sizeof(struct Trapframe));
-		e->env_tf.pc = curenv->env_tf.cp0_epc;
+		bcopy((void*) old, (void*) &(curenv->env_tf), sizeof(struct Trapframe));
+		curenv->env_tf.pc = curenv->env_tf.cp0_epc;
 	}
 
     /* Step 2: Set 'curenv' to the new environment. */
