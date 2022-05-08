@@ -19,7 +19,10 @@ NESTED(handle_sys,TF_SIZE, sp)
 	bnez	t1, BD
 	nop
 	addiu	t0, t0, 4
+	j BD_END
+	nop
 BD:
+BD_END:
 	sw	t0, TF_EPC(sp)
     // TODO: Copy the syscall number into $a0.
 	lw	a0, TF_REG4(sp)
