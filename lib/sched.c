@@ -24,7 +24,7 @@ void sched_yield(void)
 		if (env != NULL) {
 			LIST_REMOVE(env, env_sched_link);
 			if (env->env_status != ENV_FREE) {
-				LIST_INSERT_TAIL(&env_sched_list[1-point], env, env_sched_link);
+				LIST_INSERT_TAIL(&env_sched_list[1 - point], env, env_sched_link);
 			}
 		}
 		if (LIST_EMPTY(&env_sched_list[point])) {
