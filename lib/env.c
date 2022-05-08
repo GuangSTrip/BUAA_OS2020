@@ -285,10 +285,12 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 	if (offset) {
 		p = page_lookup(env->env_pgdir, va, NULL);
 		if(!p) {
-			if (r = page_alloc(&p) < 0) {
+			if ((r = page_alloc(&p)) < 0) {
 				return r;
 			}
-			page_insert(env->env_pgdir, p, va, PTE_V | PTE_R);
+			if ((r = page_insert(env->env_pgdir, p, va, PTE_V | PTE_R)) < 0) {
+				return r;
+			}
 		}
                 size = (BY2PG - offset < bin_size)? (BY2PG - offset) : bin_size;
 		bcopy((void*) bin, (void*) page2kva(p) + offset, size);
@@ -296,23 +298,23 @@ static int load_icode_mapper(u_long va, u_int32_t sgsize,
 	}
     for (; i < bin_size;i += BY2PG) {
         /* Hint: You should alloc a new page. */
-	if (r = page_alloc(&p) < 0) {
+	if ((r = page_alloc(&p)) < 0) {
 		return r;
 	}
 	size = (BY2PG < bin_size - i)? BY2PG : (bin_size - i);
 	bcopy((void*) (bin + i), (void*) page2kva(p), size);
-	if (r = page_insert(env->env_pgdir, p, va + i, PTE_V | PTE_R) < 0) {
+	if ((r = page_insert(env->env_pgdir, p, va + i, PTE_V | PTE_R)) < 0) {
 		return r;
 	}
     }
     /* Step 2: alloc pages to reach `sgsize` when `bin_size` < `sgsize`.
      * hint: variable `i` has the value of `bin_size` now! */
     while (i < sgsize) {
-	if (r = page_alloc(&p) < 0) {
+	if ((r = page_alloc(&p)) < 0) {
 		return r;
 	}
 	size = (BY2PG < sgsize - i)? BY2PG : (sgsize - i);
-	if (r = page_insert(env->env_pgdir, p, va + i, PTE_V | PTE_R) < 0) {
+	if ((r = page_insert(env->env_pgdir, p, va + i, PTE_V | PTE_R)) < 0) {
 		return r;
 	}
 	i += BY2PG;
@@ -347,14 +349,14 @@ load_icode(struct Env *e, u_char *binary, u_int size)
     u_long perm;
 
     /* Step 1: alloc a page. */
-	if (r = page_alloc(&p) < 0) {
+	if ((r = page_alloc(&p)) < 0) {
 		return;
 	}
 
     /* Step 2: Use appropriate perm to set initial stack for new Env. */
     /* Hint: Should the user-stack be writable? */
 	perm = PTE_R;
-	if (r = page_insert(e->env_pgdir, p, USTACKTOP - BY2PG, perm) < 0) {
+	if ((r = page_insert(e->env_pgdir, p, USTACKTOP - BY2PG, perm)) < 0) {
 		return;
 	}
 	
@@ -380,7 +382,7 @@ env_create_priority(u_char *binary, int size, int priority)
 {
     struct Env *e;
     /* Step 1: Use env_alloc to alloc a new env. */
-	if (env_alloc(&e, 0) < 0) {
+	if ((env_alloc(&e, 0)) < 0) {
 		return;
 	}
     /* Step 2: assign priority to the new env. */

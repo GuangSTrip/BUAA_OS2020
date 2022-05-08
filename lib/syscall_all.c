@@ -118,8 +118,6 @@ int sys_env_destroy(int sysno, u_int envid)
 /*** exercise 4.12 ***/
 int sys_set_pgfault_handler(int sysno, u_int envid, u_int func, u_int xstacktop)
 {
-	// Your code here.
-	struct Env *env;
 	int ret;
 
 
@@ -158,13 +156,13 @@ int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)
 	if (!(perm & PTE_V) || (perm & PTE_COW)) {
 		return -E_INVAL;
 	}
-	if (ret = envid2env(envid, &env, 1) < 0) {
+	if ((ret = envid2env(envid, &env, 1)) < 0) {
 		return ret;
 	}
-	if (ret = page_alloc(&ppage) < 0) {
+	if ((ret = page_alloc(&ppage)) < 0) {
 		return ret;
 	}
-	if (ret = page_insert(env->env_pgdir, ppage, va, perm) < 0) {
+	if ((ret = page_insert(env->env_pgdir, ppage, va, perm)) < 0) {
 		return ret;
 	}
 	return 0;
@@ -206,10 +204,10 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 	if ((perm & PTE_V) == 0) {
 		return -E_INVAL;
 	}
-	if (ret = envid2env(srcid, &srcenv, 0) < 0) {
+	if ((ret = envid2env(srcid, &srcenv, 0)) < 0) {
 		return ret;
 	}
-	if (ret = envid2env(dstid, &dstenv, 0) < 0) {
+	if ((ret = envid2env(dstid, &dstenv, 0)) < 0) {
 		return ret;
 	}
 	if ((ppage = page_lookup(srcenv->env_pgdir, round_srcva, &ppte)) == 0) {
@@ -218,7 +216,7 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 	if (((*ppte & PTE_R) == 0) && ((perm & PTE_R) != 0)) {
 		return -E_INVAL;
 	}
-	if (ret = page_insert(dstenv->env_pgdir, ppage, round_dstva, perm) < 0) {
+	if ((ret = page_insert(dstenv->env_pgdir, ppage, round_dstva, perm)) < 0) {
 		return ret;
 	}
 	return 0;
@@ -239,11 +237,10 @@ int sys_mem_unmap(int sysno, u_int envid, u_int va)
 	// Your code here.
 	int ret;
 	struct Env *env;
-	
 	if (va < 0 || va >= UTOP) {
 		return -E_INVAL;
 	}
-	if (ret = envid2env(envid, &env, 0) < 0) {
+	if ((ret = envid2env(envid, &env, 0)) < 0) {
 		return ret;
 	}
 	page_remove(env->env_pgdir, va);
@@ -385,7 +382,7 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 	if (srcva < 0 || srcva >= UTOP) {
 		return -E_INVAL;
 	}
-	if (r = envid2env(envid, &e, 0) < 0) {
+	if ((r = envid2env(envid, &e, 0)) < 0) {
 		return r;
 	}
 	if (e->env_ipc_recving == 0) {
@@ -397,9 +394,9 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 	e->env_status = ENV_RUNNABLE;
 	if (srcva != 0) {
 		e->env_ipc_perm = perm;
-		if (p = page_lookup(curenv->env_pgdir, srcva, 0) <= 0) {
+		if ((p = page_lookup(curenv->env_pgdir, srcva, 0)) <= 0) {
 			return -E_INVAL;
-		} else if (r = page_insert(e->env_pgdir, p, e->env_ipc_dstva, perm) < 0) {
+		} else if ((r = page_insert(e->env_pgdir, p, e->env_ipc_dstva, perm)) < 0) {
 			return r;
 		}
 	}
