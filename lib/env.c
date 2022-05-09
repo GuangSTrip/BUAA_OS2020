@@ -169,7 +169,7 @@ env_setup_vm(struct Env *e)
     /* Step 1: Allocate a page for the page directory
      *   using a function you completed in the lab2 and add its pp_ref.
      *   pgdir is the page directory of Env e, assign value for it. */
-    if (r = page_alloc(&p) < 0) {
+    if ((r = page_alloc(&p)) < 0) {
         panic("env_setup_vm - page alloc error\n");
         return r;
     }
@@ -235,7 +235,7 @@ env_alloc(struct Env **new, u_int parent_id)
 
     /* Step 2: Call a certain function (has been completed just now) to init kernel memory layout for this new Env.
      *The function mainly maps the kernel address to this new Env address. */
-	if (r = env_setup_vm(e) < 0) {
+	if ((r = env_setup_vm(e)) < 0) {
 		return r;
 	}
 
@@ -422,7 +422,7 @@ env_free(struct Env *e)
     /* Hint: Flush all mapped pages in the user portion of the address space */
     for (pdeno = 0; pdeno < PDX(UTOP); pdeno++) {
         /* Hint: only look at mapped page tables. */
-        if (!(e->env_pgdir[pdeno] & PTE_V)) {
+        if ((e->env_pgdir[pdeno] & PTE_V) == 0) {
             continue;
         }
         /* Hint: find the pa and va of the page table. */

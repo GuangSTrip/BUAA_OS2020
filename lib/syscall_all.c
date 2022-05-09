@@ -153,7 +153,7 @@ int sys_mem_alloc(int sysno, u_int envid, u_int va, u_int perm)
 	if (va < 0 || va >= UTOP) {
 		return -E_INVAL;
 	}
-	if (!(perm & PTE_V) || (perm & PTE_COW)) {
+	if (((perm & PTE_V) == 0) || (perm & PTE_COW)) {
 		return -E_INVAL;
 	}
 	if ((ret = envid2env(envid, &env, 1)) < 0) {
