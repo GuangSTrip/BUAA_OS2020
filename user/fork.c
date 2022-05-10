@@ -149,7 +149,7 @@ duppage(u_int envid, u_int pn)
 		if (syscall_mem_map(0, addr, envid, addr, perm | PTE_COW) < 0) {
 			user_panic("panic at duppage : normal for child");
 		}
-		if (syscall_mem_map(0, addr, envid, 0, perm | PTE_COW) < 0) {
+		if (syscall_mem_map(0, addr, 0, addr, perm | PTE_COW) < 0) {
 			user_panic("panic at duppage : normal for father");
 		}
 	}
