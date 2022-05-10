@@ -84,13 +84,26 @@ pgfault(u_int va)
 {
 	u_int *tmp;
 	//	writef("fork.c:pgfault():\t va:%x\n",va);
-
+	u_int perm;
+	tmp = USTACKTOP;
+	va = ROUNDDOWN(va, BY2PG);
+	perm = (((Pte *)(*vpt))[VPN(va)] & 0xfff);
+	if ((perm & PTE_COW) == 0) {
+		user_panic("panic at pgfault : NOT COW");
+	}
+	if (syscall_mem_alloc(0, tmp, (PTE_V | PTE_R)) < 0) {
+		user_panic("panic at pgfault : page alloc failed");
+	}
 	//map the new page at a temporary place
-
 	//copy the content
-
+	user_bcopy(va, tmp, BY2PG);
+	if (syscall_mem_map(0, tmp, 0, va, PTE_V | PTE_R) < 0) {
+		user_panic("panic at pgfault : map failed");
+	}
+	if (syscall_mem_unmap(0, tmp) < 0) {
+		user_panic("panic at pgfault : unmap failed");
+	}
 	//map the page on the appropriate place
-
 	//unmap the temporary place
 
 }
@@ -117,7 +130,30 @@ duppage(u_int envid, u_int pn)
 {
 	u_int addr;
 	u_int perm;
-
+	
+	addr = (pn << BY2PG);
+	perm = (((Pte *)(*vpt))[pn] & 0xfff);
+	
+	if ((perm & PTE_R) == 0) {
+		if (syscall_mem_map(0, addr, envid, addr, perm) < 0) {
+			user_panic("panic at duppage : !PTE_R");
+		}
+	} else if ((perm & PTE_COW) != 0) {
+		if (syscall_mem_map(0, addr, envid, addr, perm) < 0) {
+			user_panic("panic at duppage : PTE_COW");
+		}
+	} else if ((perm & PTE_LIBRARY) != 0) {
+		if (syscall_mem_map(0, addr, envid, addr, perm) < 0) {
+			user_panic("panic at duppage : PTE_LIBRARY");
+		}
+	} else {
+		if (syscall_mem_map(0, addr, envid, addr, perm | PTE_COW) < 0) {
+			user_panic("panic at duppage : normal for child");
+		}
+		if (syscall_mem_map(0, addr, envid, 0, perm | PTE_COW) < 0) {
+			user_panic("panic at duppage : normal for father");
+		}
+	}
 	//	user_panic("duppage not implemented");
 }
 
@@ -145,8 +181,26 @@ fork(void)
 	//The parent installs pgfault using set_pgfault_handler
 
 	//alloc a new alloc
-
-
+	newenvid = syscall_env_alloc();
+	if (newenvid == 0) {
+		env = &envs[ENVX(syscall_getenvid())];
+		return 0;	
+	}
+	
+	for (i = 0;i < USTACKTOP;i += BY2PG) {
+		if (((((Pde *)(*vpd))[i >> PDSHIFT]) & PTE_V) && ((((Pte *)(*vpt))[i >> PGSHIFT]) & PTE_V)) {
+			duppage(newenvid, VPN(i));
+		} 
+	}
+	if (syscall_mem_alloc(newenvid, UXSTACKTOP - BY2PG, PTE_V | PTE_R) < 0) {
+		user_panic("panic at fork : alloc failed");
+	}
+	if (syscall_set_pgfault_handler(newenvid, __asm_pgfault_handler, UXSTACKTOP) < 0) {
+		user_panic("panic at fork : set pgfault handler failed");
+	}
+	if (syscall_set_env_status(newenvid , ENV_RUNNABLE) < 0) {
+		user_panic("panic at fork : status set failed");
+	}
 	return newenvid;
 }
 
