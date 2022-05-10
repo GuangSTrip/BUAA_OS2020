@@ -130,10 +130,9 @@ duppage(u_int envid, u_int pn)
 {
 	u_int addr;
 	u_int perm;
-	
-	addr = (pn << BY2PG);
-	perm = (((Pte *)(*vpt))[pn] & 0xfff);
-	
+	addr = (pn << PGSHIFT);
+	//writef("%x\n",addr);
+	perm = ((Pte *)(*vpt))[pn] & 0xfff;
 	if ((perm & PTE_R) == 0) {
 		if (syscall_mem_map(0, addr, envid, addr, perm) < 0) {
 			user_panic("panic at duppage : !PTE_R");
@@ -179,7 +178,7 @@ fork(void)
 
 
 	//The parent installs pgfault using set_pgfault_handler
-
+	set_pgfault_handler(pgfault);
 	//alloc a new alloc
 	newenvid = syscall_env_alloc();
 	if (newenvid == 0) {
@@ -188,7 +187,8 @@ fork(void)
 	}
 	
 	for (i = 0;i < USTACKTOP;i += BY2PG) {
-		if (((((Pde *)(*vpd))[i >> PDSHIFT]) & PTE_V) && ((((Pte *)(*vpt))[i >> PGSHIFT]) & PTE_V)) {
+		if (((((Pde *)(*vpd))[i >> PDSHIFT]) & PTE_V) && ((((Pte *)(*vpt))[i >> PGSHIFT]) & PTE_V)) {	
+			//writef("%x\n",(*vpt)[VPN(i)]);
 			duppage(newenvid, VPN(i));
 		} 
 	}

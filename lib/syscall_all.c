@@ -214,7 +214,7 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 	if ((ret = envid2env(dstid, &dstenv, 0)) < 0) {
 		return ret;
 	}
-	if ((ppage = page_lookup(srcenv->env_pgdir, round_srcva, &ppte)) == 0) {
+	if ((ppage = page_lookup(srcenv->env_pgdir, round_srcva, &ppte)) == NULL) {
 		return -E_INVAL;
 	}
 	if (((*ppte & PTE_R) == 0) && ((perm & PTE_R) != 0)) {
@@ -223,6 +223,7 @@ int sys_mem_map(int sysno, u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 	if ((ret = page_insert(dstenv->env_pgdir, ppage, round_dstva, perm)) < 0) {
 		return ret;
 	}
+
 	return 0;
 }
 
