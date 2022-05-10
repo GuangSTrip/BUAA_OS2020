@@ -120,7 +120,7 @@ int sys_set_pgfault_handler(int sysno, u_int envid, u_int func, u_int xstacktop)
 {
 	int ret;
 	struct Env *env;
-	if ((ret = envid2env(envid, &env, 0)) < 0) { // ?
+	if ((ret = envid2env(envid, &env, 1)) < 0) { // ?
 		return ret;
 	}
 	env->env_pgfault_handler = func;
@@ -304,7 +304,7 @@ int sys_set_env_status(int sysno, u_int envid, u_int status)
 	if (status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE && status != ENV_FREE) {
 		return -E_INVAL;
 	}
-	if ((ret = envid2env(envid, &env, 0)) < 0) {
+	if ((ret = envid2env(envid, &env, 1)) < 0) {
 		return ret;
 	}
 	if (status == ENV_FREE) {
