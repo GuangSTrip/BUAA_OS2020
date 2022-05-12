@@ -166,7 +166,7 @@ LW:			nop
 			j	EN	
 			nop
 LH:			nop
-			and	k1, 0x8fffffff
+			and	k1, 0x83ffffff
 EN:			nop
 			sw	k1, 0(k0)
 			nop
