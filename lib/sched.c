@@ -46,11 +46,18 @@ void sched_yield(void)
 		if (env != NULL) {
 			LIST_REMOVE(env, env_sched_link);
 			if (env->env_status != ENV_FREE) {
-				LIST_INSERT_TAIL(&env_sched_list[(point + 1) % 3], env, env_sched_link);
+				if (env->env_pri % 2 == 1) {
+                       			 LIST_INSERT_TAIL(&env_sched_list[(point + 1) % 3], env, env_sched_link);
+                			//printf("send to point : %d\n", (point + 1) % 3);
+				} else {
+	                 	       LIST_INSERT_TAIL(&env_sched_list[(point + 2) % 3], env, env_sched_link);
+					//printf("send to point : %d\n", (point + 2) % 3);
+                		}
 			}
 		}
 		if (LIST_EMPTY(&env_sched_list[point])) {
 			point = (point + 1) % 3;
+			env = NULL;
 			continue;
 		}
 		env = LIST_FIRST(&env_sched_list[point]);
@@ -59,15 +66,9 @@ void sched_yield(void)
 		}
 		
 	}
+	//printf("point is : %d\n",point);
+	//printf("count = %d\n", count);
 	count--;
-	if (count == 0 && env != NULL) {
-		LIST_REMOVE(env, env_sched_link);
-		if (env->env_pri % 2 == 1) {
-			LIST_INSERT_TAIL(&env_sched_list[(point + 1) % 3], env, env_sched_link);
-		} else {
-			LIST_INSERT_TAIL(&env_sched_list[(point + 2) % 3], env, env_sched_link);
-		}
-	}
 	env_run(env);
 	//env_run(LIST_FIRST(env_sched_list));
     /*  hint:
