@@ -162,13 +162,15 @@ NESTED(lab, 0, sp)
 			beqz	t0, LH
 			nop
 LW:			nop
-			and	k1, 0xf7ffffff
+			and	k1, 0x83ffffff
 			j	EN	
 			nop
 LH:			nop
-			and	k1, 0xf3ffffff
+			and	k1, 0x87ffffff
 EN:			nop
 			sw	k1, 0(k0)
+			nop
+			jr		ra
 			nop
 END(lab)
 
