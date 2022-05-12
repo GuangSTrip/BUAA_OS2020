@@ -63,8 +63,6 @@ bnez	t1, timer_irq
 nop
 END(handle_int)
 
-	.extern delay
-
 timer_irq:
 
 	sb zero, 0xb5000110
@@ -152,8 +150,29 @@ nop
 			nop
 END(do_refill)
 
-
+//lab 3-2-Extra
+.set noreorder
+NESTED(lab, 0, sp)
+			mfc0	k0, CP0_EPC
+			lw	k1, 0(k0)
+			nop
+			move	t0, k1
+			and	t0, 0xfc000000
+			and	t0, 0x08000000
+			beqz	t0, LH
+			nop
+LW:			nop
+			and	k1, 0xf7ffffff
+			j	EN	
+			nop
+LH:			nop
+			and	k1, 0xf3ffffff
+EN:			nop
+			sw	k1, 0(k0)
+			nop
+END(lab)
 
 BUILD_HANDLER reserved do_reserved cli
 BUILD_HANDLER tlb	do_refill	cli
 BUILD_HANDLER mod	page_fault_handler cli
+BUILD_HANDLER ades	lab	cli
