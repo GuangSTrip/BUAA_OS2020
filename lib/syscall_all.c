@@ -7,7 +7,8 @@
 
 extern char *KERNEL_SP;
 extern struct Env *curenv;
-
+extern int con_free;
+extern int con_envid;
 /* Overview:
  * 	This function is used to print a character on screen.
  *
@@ -16,7 +17,9 @@ extern struct Env *curenv;
  */
 void sys_putchar(int sysno, int c, int a2, int a3, int a4, int a5)
 {
-	printcharc((char) c);
+	if (con_free == 1 && con_envid == curenv->env_id) {
+		printcharc((char) c);
+	}
 	return ;
 }
 
@@ -427,4 +430,23 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 		}
 	}
 	return 0;
+}
+
+
+//lab4-1-exam
+int sys_try_acquire_console() {
+	if (con_free == 0) {
+		con_free = 1;
+		con_envid = curenv->env_id;
+		return 0;
+	} 
+	return -1;
+}
+
+int sys_release_console() {
+	if (con_free == 1 && con_envid == curenv->env_id) {
+		con_free = 0;
+		return 0;
+	}
+	return -1;
 }

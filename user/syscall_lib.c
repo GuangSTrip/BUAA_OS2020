@@ -88,3 +88,17 @@ syscall_cgetc()
 {
 	return msyscall(SYS_cgetc, 0, 0, 0, 0, 0);
 }
+
+//lab4-1-exam
+int 
+syscall_try_acquire_console()
+{
+	return msyscall(SYS_acq, 0, 0, 0, 0, 0);
+}
+
+int
+syscall_release_console()
+{
+	return msyscall(SYS_rel, 0, 0, 0, 0, 0);
+}
+ 
