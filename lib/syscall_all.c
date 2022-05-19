@@ -367,11 +367,44 @@ void sys_panic(int sysno, char *msg)
  * ENV_NOT_RUNNABLE, giving up cpu.
  */
 /*** exercise 4.7 ***/
+extern struct Lab lab_list[1251];
+extern int lab_n;
 void sys_ipc_recv(int sysno, u_int dstva)
 {
+	struct Env *e;
+	struct Page *p;
 	if (dstva < 0 || dstva >= UTOP) {
 		return;
 	}
+	int i;
+	int r;
+	int j = -1;
+	for (i = 0;i < lab_n;i++) {
+		if (lab_list[i].renvid == curenv->env_id && lab_list[i].v == 1) {
+			j = i;
+			lab_list[i].v = 0;
+			break;
+		}
+	}
+	if (j != -1) {
+		if ((r = envid2env(lab_list[j].senvid, &e, 0)) < 0) {
+                	return ;
+        	}
+        	curenv->env_ipc_from = e->env_id;
+	        curenv->env_ipc_value = lab_list[j].value;
+       		e->env_status = ENV_RUNNABLE;
+	        if (lab_list[j].srcva != 0) {
+        	        Pte *pte;
+                	curenv->env_ipc_perm = lab_list[i].perm;
+                	if ((p = page_lookup(e->env_pgdir, lab_list[j].srcva, &pte)) <= 0) {
+                        	return;
+                	} else if ((page_insert(curenv->env_pgdir, p, dstva, lab_list[j].perm)) < 0) {
+                        	return;
+                	}
+        	}
+		return;
+	}
+//there is no send message so wait
 	curenv->env_ipc_recving = 1;
 	curenv->env_ipc_dstva = dstva;
 	curenv->env_status = ENV_NOT_RUNNABLE;
@@ -411,7 +444,19 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 		return r;
 	}
 	if (e->env_ipc_recving == 0) {
-		return -E_IPC_NOT_RECV;
+		int i = lab_n;
+		lab_list[i].senvid = curenv->env_id;
+		lab_list[i].renvid = envid;
+		lab_list[i].value = value;
+		lab_list[i].srcva = srcva;
+		lab_list[i].perm = perm;
+		lab_list[i].v = 1;
+		lab_n++;
+		//------
+		curenv->env_status = ENV_NOT_RUNNABLE;
+        	sys_yield();
+		//------
+		return 0;
 	}
 	e->env_ipc_recving = 0;
 	e->env_ipc_from = curenv->env_id;

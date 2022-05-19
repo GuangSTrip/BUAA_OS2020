@@ -44,6 +44,18 @@ struct Env {
 	u_int env_nop;                  // align to avoid mul instruction
 };
 
+//lab4-1-Extra
+struct Lab {
+	LIST_ENTRY(Lab) lab_link;
+	u_int senvid;
+	u_int renvid;
+	u_int value;
+	u_int srcva;
+	u_int perm;
+	u_int v;
+};
+//LIST_HEAD(Lab_list, Lab);
+
 LIST_HEAD(Env_list, Env);
 extern struct Env *envs;		// All environments
 extern struct Env *curenv;	        // the current env

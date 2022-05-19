@@ -19,8 +19,9 @@ extern Pde *boot_pgdir;
 extern char *KERNEL_SP;
 
 static u_int asid_bitmap[2] = {0}; // 64
-
-
+//lab4-1
+struct Lab lab_list[1251];
+int lab_n = 0;
 /* Overview:
  *  This function is to allocate an unused ASID
  *
