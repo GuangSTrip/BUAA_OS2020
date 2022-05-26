@@ -161,9 +161,9 @@ duppage(u_int envid, u_int pn)
 int make_shared(void *va) {
 	u_int v;
 	u_int perm;
-	v = ROUNDDOWN((*(int *)va), BY2PG);
+	v = ROUNDDOWN((u_int)va, BY2PG);
 	perm = (((Pte *)(*vpt))[VPN(v)] & 0xfff);
-	if ((*(int *)va) >= UTOP) {
+	if ((u_int)va >= UTOP) {
 		return -1;
 	}
 	if ((perm & PTE_V) == 0) {
@@ -179,7 +179,8 @@ int make_shared(void *va) {
 	//	user_panic("panic at shared");
 	}
 	//return 0;
-	return (((Pte *)(*vpt))[VPN(v)]) >> 12 << 12;
+	//extern struct Page *pages;
+	return (*vpt)[VPN(v)] & 0xfffff000;
 }
 
 
