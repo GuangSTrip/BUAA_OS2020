@@ -117,6 +117,10 @@ int	readn(int fd, void *buf, u_int nbytes);
 int	dup(int oldfd, int newfd);
 int fstat(int fdnum, struct Stat *stat);
 int	stat(const char *path, struct Stat *);
+//lab4-2-extra
+void kill(u_int envid, int sig);
+void signal(int sig, void (*handler)(int));
+
 
 // file.c
 int	open(const char *path, int mode);

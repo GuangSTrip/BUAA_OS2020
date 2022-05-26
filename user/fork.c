@@ -15,6 +15,7 @@
  * 	 shouldn't overlap the `dest`, otherwise the behavior of this
  * 	 function is undefined.
  */
+static u_int f[3][1024];
 void user_bcopy(const void *src, void *dst, size_t len)
 {
 	void *max;
@@ -185,7 +186,10 @@ fork(void)
 		env = &envs[ENVX(syscall_getenvid())];
 		return 0;	
 	}
-	
+	u_int curenv = syscall_getenvid();
+	f[0][ENVX(newenvid)] = f[0][ENVX(curenv)];
+	f[1][ENVX(newenvid)] = f[1][ENVX(curenv)];
+	f[2][ENVX(newenvid)] = f[2][ENVX(curenv)];
 	for (i = 0;i < USTACKTOP;i += BY2PG) {
 		if (((((Pde *)(*vpd))[i >> PDSHIFT]) & PTE_V) && ((((Pte *)(*vpt))[i >> PGSHIFT]) & PTE_V)) {	
 			//writef("%x\n",(*vpt)[VPN(i)]);
@@ -203,6 +207,26 @@ fork(void)
 	}
 	return newenvid;
 }
+//static u_int f[3][1024];
+void signal(int sig, void (*handler)(int)) {
+	int t;
+	if (sig == 15) {
+		t = 0;
+	}
+	if (sig == 11) {
+		t = 1;
+	}	
+	if (sig == 18) {
+		t = 2;
+	}
+	int envid = syscall_getenvid();
+	if (handler == NULL) {
+		f[t][ENVX(envid)] = 0;	
+	} else {
+		f[t][ENVX(envid)] = (u_int)handler;
+	}
+}
+
 
 // Challenge!
 int

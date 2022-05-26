@@ -20,6 +20,10 @@ extern char *KERNEL_SP;
 
 static u_int asid_bitmap[2] = {0}; // 64
 
+//static u_int f[3][1024] = {0};
+//static u_int f11[1024] = {0};
+//static u_int f18[1024] = {0};
+
 
 /* Overview:
  *  This function is to allocate an unused ASID

@@ -35,3 +35,6 @@ set_pgfault_handler(void (*fn)(u_int va))
 	__pgfault_handler = fn;
 }
 
+void send_signal() {
+	
+}
