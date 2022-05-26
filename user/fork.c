@@ -156,6 +156,35 @@ duppage(u_int envid, u_int pn)
 	//	user_panic("duppage not implemented");
 }
 
+
+//lab4-2-exam
+int make_shared(void *va) {
+	u_int v;
+	u_int perm;
+	v = ROUNDDOWN((*(int *)va), BY2PG);
+	perm = (((Pte *)(*vpt))[VPN(v)] & 0xfff);
+	if ((*(int *)va) >= UTOP) {
+		return -1;
+	}
+	if ((perm & PTE_V) == 0) {
+		if (syscall_mem_alloc(0, v, (PTE_V | PTE_R)) < 0) {
+			return -1;
+		}
+	}
+	perm = (((Pte *)(*vpt))[VPN(v)] & 0xfff);
+	if ((perm & PTE_R) == 0) {
+		return -1;
+	}
+	if (syscall_mem_map(0, v, 0, v, (perm | PTE_LIBRARY)) < 0) {
+	//	user_panic("panic at shared");
+	}
+	//return 0;
+	return (((Pte *)(*vpt))[VPN(v)]) >> 12 << 12;
+}
+
+
+
+
 /* Overview:
  * 	User-level fork. Create a child and then copy our address space
  * and page fault handler setup to the child.
