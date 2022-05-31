@@ -48,7 +48,7 @@ ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs)
 		if (syscall_read_dev(&tmp, (dev + 0x30), 1) < 0) {
 			user_panic("ide_read wrong!!");
 		}
-		if (tmp == 0) [
+		if (tmp == 0) {
 			user_panic("ide_read wrong at read!!");
 		}
 		if (syscall_read_dev((u_int)(dst + offset), (dev + 0x4000), 0x200) < 0) {
@@ -107,7 +107,7 @@ ide_write(u_int diskno, u_int secno, void *src, u_int nsecs)
                 if (syscall_read_dev(&tmp, (dev + 0x30), 1) < 0) {
                         user_panic("ide_read wrong!!");
                 }
-                if (tmp == 0) [
+                if (tmp == 0) {
                         user_panic("ide_read wrong at read!!");
                 }		
 		offset += 0x200;
