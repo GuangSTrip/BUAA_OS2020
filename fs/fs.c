@@ -326,16 +326,13 @@ check_write_block(void)
 	// copy the data in super block to the first block on the disk.
 	read_block(0, 0, 0);
 	user_bcopy((char *)diskaddr(1), (char *)diskaddr(0), BY2PG);
-
 	// smash it
 	strcpy((char *)diskaddr(1), "OOPS!\n");
 	write_block(1);
 	user_assert(block_is_mapped(1));
-
 	// clear it out
 	syscall_mem_unmap(0, diskaddr(1));
 	user_assert(!block_is_mapped(1));
-
 	// validate the data read from the disk.
 	read_block(1, 0, 0);
 	user_assert(strcmp((char *)diskaddr(1), "OOPS!\n") == 0);
