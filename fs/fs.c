@@ -20,9 +20,8 @@ diskaddr(u_int blockno)
 		if (blockno >= super->s_nblocks) {
 			user_panic("blockno wrong : no super");
 		}
-	} else {
-		user_panic("blockno wrong : over panic");
 	}
+	//writef("%d : %x\n", blockno, (DISKMAP + (blockno * BY2BLK)));
 	return (DISKMAP + (blockno * BY2BLK));
 }
 
