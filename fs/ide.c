@@ -30,8 +30,8 @@ ide_read(u_int diskno, u_int secno, void *dst, u_int nsecs)
 	int offset_end = offset_begin + nsecs * 0x200;
 	int offset = 0;
 	int dev = 0x13000000;
-	int write = 0;
-	int r = 0;
+	u_char write = 0;
+	u_char r = 0;
 	u_int tmp;
 	while (offset_begin + offset < offset_end) {
 		// Your code here
