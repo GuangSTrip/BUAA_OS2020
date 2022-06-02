@@ -117,3 +117,47 @@ ide_write(u_int diskno, u_int secno, void *src, u_int nsecs)
 		// if error occur, then panic.
 	}
 }
+
+//lab5-1-exam
+int time_read() {
+	u_char up = 1;
+	int time;
+	int addr = 0x15000000;
+	if (syscall_write_dev(&up, addr, 1) < 0) {
+		user_panic("time_read error!!");
+	}
+	if (syscall_read_dev(&time, (addr + 0x0010), 4) < 0) {
+		user_panic("time_read error!!");
+	}
+	return time;
+}
+
+void raid0_write(u_int secno, void *src, u_int nsecs) {
+	//int offset_begin = secno * 0x200;
+	//int offset_end = offset_begin + nsecs * 0x200;
+	int i;
+	int offset;
+	for (i = secno; i < secno + nsecs; i++) {
+		offset = src + (i - secno) * 0x200;
+		if (i % 2 == 0) {
+			ide_write(1, i / 2, (void *)offset, 1);
+		} else {
+			ide_write(2, i / 2, (void *)offset, 1);
+		}
+	}
+}
+
+void raid0_read(u_int secno, void *dst, u_int nsecs) {
+	int i;
+        int offset;
+        for (i = secno; i < secno + nsecs; i++) {
+                offset = dst + (i - secno) * 0x200;
+                if (i % 2 == 0) {
+                        ide_write(1, i / 2, (void *)offset, 1);
+                } else {
+                        ide_write(2, i / 2, (void *)offset, 1);
+                }
+        }
+}
+
+
