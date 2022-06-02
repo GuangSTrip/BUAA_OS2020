@@ -153,9 +153,9 @@ void raid0_read(u_int secno, void *dst, u_int nsecs) {
         for (i = secno; i < secno + nsecs; i++) {
                 offset = dst + (i - secno) * 0x200;
                 if (i % 2 == 0) {
-                        ide_write(1, i / 2, (void *)offset, 1);
+                        ide_read(1, i / 2, (void *)offset, 1);
                 } else {
-                        ide_write(2, i / 2, (void *)offset, 1);
+                        ide_read(2, i / 2, (void *)offset, 1);
                 }
         }
 }
