@@ -36,3 +36,8 @@ int alloc_block(void);
 
 /* test.c */
 void fs_test(void);
+
+//lab5-1-Extra
+int raid4_valid(u_int diskno);
+int raid4_write(u_int blockno, void *src);
+int raid4_read(u_int blockno, void *dst);
