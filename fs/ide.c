@@ -137,6 +137,8 @@ int raid4_valid(u_int diskno) {
 
 int raid4_write(u_int blockno, void *src) {
 	int i;
+	int j;
+	int k;
 	int dino;
 	int seno;
 	int ans = 0;
@@ -154,29 +156,34 @@ int raid4_write(u_int blockno, void *src) {
 		}
 	}
 	int jo[128];
-	int *a, *b, *c, *d;
-	a = src;
-	b = src + 512;
-	c = src + 1024;
-	d = src + 1536;
-	for (i = 0; i < 16; i++) {
-		jo[i] = a[i] | b[i] | c[i] | d[i];
+	int addr[5];
+	addr[1] = src; addr[2] = src + 512; addr[3] = src + 1024; addr[4] = src + 1536;
+	//for (i = 0; i < 16; i++) {
+	//	jo[i] = a[i] | b[i] | c[i] | d[i];
+	//}
+	for (i = 0; i < 128; i++) {
+                k = 0;
+                for (j = 1; j < 5; j++) k ^= *(int *)(addr[j] + i * 4);
+        	jo[i] = k;
+		//writef("%d : %d\n", i, k);
 	}
 	dino = 5;
 	seno = 2 * blockno;
 	offset = &jo;
 	if (raid4_valid(dino)) {
                         ide_write(dino, seno, (void *)offset, 1);
-                } else {
+                	//int t[129];
+			//ide_read(dino, seno, (void *)&t, 1);
+			//writef("\n\n!!!!!!!!! %d\n\n\n", t[0]); 
+		} else {
                      	ans++;
                 }
 	//ide_write(dino, seno, (void *)offset, 1);
-	a = src + 2048;
-        b = src + 2560;
-        c = src + 3072;
-        d = src + 3584;
-        for (i = 0; i < 16; i++) {
-                jo[i] = a[i] | b[i] | c[i] | d[i];
+	addr[1] = src + 2048; addr[2] = src + 2560; addr[3] = src + 3072; addr[4] = src + 3584;
+	for (i = 0; i < 128; i++) {
+                k = 0;
+                for (j = 1; j < 5; j++) k ^= *(int *)(addr[j] + i * 4);
+                jo[i] = k;
         }
 	dino = 5;
         seno = 2 * blockno + 1;
@@ -221,9 +228,9 @@ int raid4_read(u_int blockno, void *dst) {
                 offset = &jo;
                 ide_read(dino, seno, (void *)offset, 1);
                 addr[1] = dst; addr[2] = dst + 512; addr[3] = dst + 1024; addr[4] = dst + 1536;
-		for (i = 0; i < 16; i++) {
+		for (i = 0; i < 128; i++) {
 			k = 0;
-			for (j = 1; j < 5; j++) k |= *(int *)(addr[j] + i * 32);
+			for (j = 1; j < 5; j++) k ^= *(int *)(addr[j] + i * 4);
 			if (k != jo[i]) {
 				return -1;
 			}
@@ -234,9 +241,9 @@ int raid4_read(u_int blockno, void *dst) {
                 ide_read(dino, seno, (void *)offset, 1);
                 //addr[1] = dst; addr[2] = dst + 512; addr[3] = dst + 1024; addr[4] = dst + 1536;
                 addr[1] = dst + 2048; addr[2] = dst + 2560; addr[3] = dst + 3072; addr[4] = dst + 3584;
-		for (i = 0; i < 16; i++) {
+		for (i = 0; i < 128; i++) {
                         k = 0;
-                        for (j = 1; j < 5; j++) k |= *(int *)(addr[j] + i * 32);
+                        for (j = 1; j < 5; j++) k ^= *(int *)(addr[j] + i * 4);
                         if (k != jo[i]) {
                                 return -1;
                         }
@@ -263,10 +270,10 @@ int raid4_read(u_int blockno, void *dst) {
 		offset = &jo;
 		ide_read(dino, seno, (void *)offset, 1);
 		addr[1] = dst; addr[2] = dst + 512; addr[3] = dst + 1024; addr[4] = dst + 1536;
-		for (i = 0; i < 16; i++) {
+		for (i = 0; i < 128; i++) {
 			for (j = 1;j < 5;j++) {
 				if (raid4_valid(j)) {
-					jo[i] |= *(int *)(addr[j]);
+					jo[i] ^= *(int *)(addr[j] + i * 4);
 				}	
 			}
 		}
@@ -276,10 +283,10 @@ int raid4_read(u_int blockno, void *dst) {
                 offset = &jo;
                 ide_read(dino, seno, (void *)offset, 1);
                 addr[1] = dst + 2048; addr[2] = dst + 2560; addr[3] = dst + 3072; addr[4] = dst + 3584;
-                for (i = 0; i < 16; i++) {
+                for (i = 0; i < 128; i++) {
                         for (j = 1;j < 5;j++) {
                                 if (raid4_valid(j)) {
-                                        jo[i] |= *(int *)(addr[j]);
+                                        jo[i] ^= *(int *)(addr[j] + i * 4);
                                 } 
                         }
                 }
