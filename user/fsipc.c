@@ -128,13 +128,17 @@ fsipc_dirty(u_int fileid, u_int offset)
 int
 fsipc_remove(const char *path)
 {
+	struct Fsreq_remove* f;
 	// Step 1: Check the length of path, decide if the path is valid.
-
+	if (strlen(path) >= MAXPATHLEN) {
+                return -E_BAD_PATH;
+        }
 	// Step 2: Transform fsipcbuf to struct Fsreq_remove*
-
+	f = (struct Fsreq_remove *)fsipcbuf;
 	// Step 3: Copy path to path in req.
-
+	strcpy((char *)f->req_path, path);
 	// Step 4: Send request to fs server with IPC.
+	return fsipc(FSREQ_REMOVE, f, 0, 0);
 }
 
 // Overview:
