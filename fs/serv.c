@@ -213,9 +213,7 @@ serve_remove(u_int envid, struct Fsreq_remove *rq)
 	// Step 2: Remove file from file system and response to user-level process.
 	// Call file_remove and ipc_send an approprite value to corresponding env.
 	r = file_remove(path);
-        if (r > 0) {
-                ipc_send(envid, r, 0, 0);
-        }
+        ipc_send(envid, r, 0, 0);
 }
 
 void
