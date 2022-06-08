@@ -3,7 +3,7 @@
 
 void umain()
 {
-	
+	//writef("%d", sizeof(struct File));	
     int i=0;
 	char buf[32] = {0};
 	char c = 0;

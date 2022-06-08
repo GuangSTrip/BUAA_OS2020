@@ -548,7 +548,7 @@ dir_lookup(struct File *dir, char *name, struct File **file)
 	struct File *f;
 
 	// Step 1: Calculate nblock: how many blocks are there in this dir？
-	nblock = (dir->f_size, BY2BLK) /BY2BLK;
+	nblock = ROUND(dir->f_size, BY2BLK) /BY2BLK;
 	for (i = 0; i < nblock; i++) {
 		// Step 2: Read the i'th block of the dir.
 		// Hint: Use file_get_block.
