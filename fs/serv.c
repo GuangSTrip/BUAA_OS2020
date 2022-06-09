@@ -118,8 +118,13 @@ serve_open(u_int envid, struct Fsreq_open *rq)
 	// Open the file.
 	if ((r = file_open((char *)path, &f)) < 0) {
 	//	user_panic("file_open failed: %d, invalid path: %s", r, path);
-		ipc_send(envid, r, 0, 0);
-		return ;
+		if ((rq->req_omode & O_CREAT) != 0) {
+			file_create((char *)path, &f);
+		}
+		else {
+			ipc_send(envid, r, 0, 0);
+			return ;
+		}
 	}
 
 	// Save the file pointer.
@@ -132,8 +137,11 @@ serve_open(u_int envid, struct Fsreq_open *rq)
 	o->o_mode = rq->req_omode;
 	ff->f_fd.fd_omode = o->o_mode;
 	ff->f_fd.fd_dev_id = devfile.dev_id;
-
-	ipc_send(envid, 0, (u_int)o->o_ff, PTE_V | PTE_R | PTE_LIBRARY);
+	if ((o->o_mode & O_ALONE) != 0) {//lab5-2-exam-2
+		ipc_send(envid, 0, (u_int)o->o_ff, PTE_V | PTE_R);
+	} else {
+		ipc_send(envid, 0, (u_int)o->o_ff, PTE_V | PTE_R | PTE_LIBRARY);
+	}
 }
 
 void

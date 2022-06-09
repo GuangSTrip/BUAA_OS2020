@@ -60,6 +60,10 @@ open(const char *path, int mode)
                         return r;
                 }
         }
+	//lab5-2-exam-1
+	if ((mode & O_APPEND) != 0) {
+		fd->fd_offset = size;
+	}
 	// Step 5: Return the number of file descriptor.
 	return fd2num(fd);
 }
