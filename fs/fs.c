@@ -708,6 +708,45 @@ file_open(char *path, struct File **file)
 	return walk_path(path, 0, file, 0);
 }
 
+/*int file_lab(char *path, char *ans) {
+	struct File *dir;
+	if ((r = walk_path(path, 0, &dir, 0)) < 0)
+
+
+	int r;
+	u_int i, j, nblock;
+	void *bl
+}*/
+int file_lab(char *path, char *ans) {
+    int r;  
+    u_int i, j, nblock;
+    int find = 0;
+    void *blk;
+    struct File *f;
+	struct File *dir;
+	//char s[2];
+	//s = " ";
+    if ((r = walk_path(path, 0, &dir, 0)) < 0) {
+   		return r;
+	}
+	nblock = ROUND(dir->f_size, BY2BLK) / BY2BLK;
+	for (i = 0; i < nblock; i++) {
+		if ((r = file_get_block(dir, i, &blk)) < 0) {
+			return r;
+		}
+		for (j = 0; j < FILE2BLK; j++) {
+			f = ((struct File *)blk) + j;
+			if (find == 0) {
+				find = 1;
+			} else {
+	//			strcat((char *ans), (char *)s);
+			}
+	//		strcat((char *)ans, (char *)f->f_name);
+		}
+	}
+	return 0;
+}
+
 // Overview:
 //	Create "path".
 //

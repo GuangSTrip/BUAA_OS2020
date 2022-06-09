@@ -109,7 +109,7 @@ int	fsipc_dirty(u_int, u_int);
 int	fsipc_remove(const char *);
 int	fsipc_sync(void);
 int	fsipc_incref(u_int);
-
+int	fsipc_lab(const char *name, char *ans);
 // fd.c
 int	close(int fd);
 int	read(int fd, void *buf, u_int nbytes);
@@ -127,6 +127,7 @@ int	read_map(int fd, u_int offset, void **blk);
 int	remove(const char *path);
 int	ftruncate(int fd, u_int size);
 int	sync(void);
+int	list_dir(const char* path, char* ans); //lab5-2-Extra
 
 #define user_assert(x)	\
 	do {	if (!(x)) user_panic("assertion failed: %s", #x); } while (0)

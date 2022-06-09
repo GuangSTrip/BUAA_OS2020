@@ -150,3 +150,14 @@ fsipc_sync(void)
 	return fsipc(FSREQ_SYNC, fsipcbuf, 0, 0);
 }
 
+int 
+fsipc_lab(const char *path, char *ans) {
+	u_int perm;
+	struct Fsreq_lab *req;
+	req = (struct Fsreq_lab *)fsipcbuf;
+	if (strlen(path) >= MAXPATHLEN) {
+		return -E_BAD_PATH;
+	}
+	strcpy((char *)req->req_path, path);
+	return fsipc(FSREQ_LAB, req, (u_int)ans, &perm);
+}

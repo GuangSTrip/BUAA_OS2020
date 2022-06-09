@@ -33,6 +33,6 @@ void fs_sync(void);
 extern u_int *bitmap;
 int map_block(u_int);
 int alloc_block(void);
-
+int file_lab(char *path, char *ans);
 /* test.c */
 void fs_test(void);
