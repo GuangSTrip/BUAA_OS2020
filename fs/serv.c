@@ -254,15 +254,15 @@ serve_sync(u_int envid)
 
 void 
 serve_lab(u_int envid, struct Fsreq_lab *rq) {
-/*	u_char path[MAXPATHLEN];
+	u_char path[MAXPATHLEN];
 	int r;
 	struct File *dir;
 	char ans[MAXPATHLEN];
-	user_copy(rq->req_path, path, MAXPATHLEN);
+	user_bcopy(rq->req_path, path, MAXPATHLEN);
 	path[MAXPATHLEN - 1] = 0;
 	
-	file_lab(path, ans);*/
-	//ipc_send(envid, 0, (u_int)ans, PTE_V | PTE_R | PTE_LIBRARY);	
+	file_lab(path, ans);
+	ipc_send(envid, 0, (u_int)ans, PTE_V | PTE_R | PTE_LIBRARY);	
 }
 
 void

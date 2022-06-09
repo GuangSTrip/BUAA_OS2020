@@ -719,13 +719,16 @@ file_open(char *path, struct File **file)
 }*/
 int file_lab(char *path, char *ans) {
     int r;  
-    u_int i, j, nblock;
+    u_int i, j, k, nblock;
     int find = 0;
     void *blk;
     struct File *f;
 	struct File *dir;
-	//char s[2];
-	//s = " ";
+	char s[2];
+	s[0] = ' ';
+	s[1] = '\0';
+	int lll;
+	int sss;
     if ((r = walk_path(path, 0, &dir, 0)) < 0) {
    		return r;
 	}
@@ -739,9 +742,16 @@ int file_lab(char *path, char *ans) {
 			if (find == 0) {
 				find = 1;
 			} else {
-	//			strcat((char *ans), (char *)s);
+				sss =strlen(ans);
+				ans[sss] = ' ';
+				ans[sss + 1] = '\0';
 			}
-	//		strcat((char *)ans, (char *)f->f_name);
+			lll = strlen(f->f_name);
+			sss = strlen(ans);
+			for (k = 0;k < lll;k++) {
+				ans[sss + k] = (char *)f->f_name[k];
+			}
+			ans[sss + lll] = '\0';
 		}
 	}
 	return 0;
