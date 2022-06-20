@@ -135,8 +135,39 @@ int spawn(char *prog, char **argv)
 	//       the file is opened successfully, and env is allocated successfully.
 	// Note2: You can achieve this func in any way ，remember to ensure the correctness
 	//        Maybe you can review lab3 
+	fd = r;
+	if ((r = readn(fd, elfbuf, sizeof(Elf32_Ehdr))) < 0) {
+		user_panic("spawn :: readn wrong !\n");
+		return r;
+	}
+	elf = (Elf32_Ehdr *)elfbuf;
+	size = ((struct Filefd*) num2fd(fd))->f_file.f_size;
+	if (size < 4 || usr_is_elf_format((char *)elf) == 0 || elf->e_type != 2) {
+		user_panic("spwan ::not a execute bin");
+	}
+	if ((child_envid = syscall_env_alloc()) < 0) {
+		user_panic("spwan ::env alloc wrong !\n");
+	}
+	init_stack(child_envid, argv, &esp);
+	size = elf->e_phentsize;
+	text_start = elf->e_phoff;
+	int num = elf->e_phnum;
+	for (i = 0; i < num; i++) {
+		if ((r = seek(fd, text_start)) < 0) {
+			user_panic("spawn ::seek worng !\n");
+		}
+		if ((r = readn(fd, elfbuf, size)) < 0) {
+			user_panic("spawn ::readn in for wrong !\n");
+		}
+		ph = (Elf32_Phdr *)elfbuf;
+		if (ph->p_type == PT_LOAD) {
+			if ((r = usr_load_elf(fd, ph, child_envid)) < 0) {
+				user_panic("spawn ::load wrong !\n");
+			}
+		}
+		text_start += size;
+	}	
 	// Your code ends here
-
 	struct Trapframe *tf;
 	writef("\n::::::::::spawn size : %x  sp : %x::::::::\n",size,esp);
 	tf = &(envs[ENVX(child_envid)].env_tf);
