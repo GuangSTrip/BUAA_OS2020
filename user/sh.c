@@ -106,7 +106,7 @@ again:
 			}
 			// Your code here -- open t for reading,
 			// dup it onto fd 0, and then close the fd you got.
-			if ((fdnum = open(t, O_RDONLY)) < 0) {
+			if ((fd = open(t, O_RDONLY)) < 0) {
 				user_panic("runcmd :: < open wrong !\n");
 			}
 			dup(fd, 0);
@@ -120,7 +120,7 @@ again:
 				writef("syntax error: > not followed by word\n");
 				exit();
 			}
-			if ((fdnum = open(t, O_WRONLY)) < 0) {
+			if ((fd = open(t, O_WRONLY)) < 0) {
 				user_panic("runcmd :: > open wrong !\n");
 			}
 			dup(fd, 1);
