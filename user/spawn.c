@@ -98,10 +98,65 @@ int usr_is_elf_format(u_char *binary){
     return 0;
 }
 
+#define BUFPAGE (0x40000000)
 int 
 usr_load_elf(int fd , Elf32_Phdr *ph, int child_envid){
 	//Hint: maybe this function is useful 
 	//      If you want to use this func, you should fill it ,it's not hard
+	u_long va = ph->p_vaddr;
+	u_int32_t sgsize = ph->p_memsz;
+	u_int32_t binsize = ph->p_filesz;
+	u_long f_offset = ph->p_offset;
+	u_long offset = va - ROUNDDOWN(va, BY2PG);
+	int size, r;
+	u_char buf[BY2PG];
+	int i = 0;
+	if (offset) {
+		if ((r = syscall_mem_alloc(child_envid, va, PTE_V | PTE_R)) < 0) {
+			return r;
+		}
+		size = (BY2PG - offset < binsize)? (BY2PG - offset) : binsize;
+		if ((r = seek(fd, f_offset)) < 0) {
+			return r;
+		}	
+		if ((r = readn(fd, buf, size)) < 0) {
+			return r;
+		}
+		if ((r = syscall_mem_map(child_envid, va, 0, BUFPAGE, PTE_V | PTE_R)) < 0) {
+			return r;
+		}
+		user_bcopy((void *)buf, (void *)(BUFPAGE + offset), size);
+		if ((r = syscall_mem_unmap(0, BUFPAGE)) < 0) {
+			return r;
+		}
+		i += size;
+	}
+	for (; i < binsize; i += BY2PG) {
+		if ((r = syscall_mem_alloc(child_envid, va + i, PTE_V | PTE_R)) < 0) {
+			return r;
+		}
+		size = (BY2PG < binsize - i)? BY2PG : (binsize - i);
+		if ((r = seek(fd, f_offset + i)) < 0) {
+			return r;
+		}
+		if ((r = readn(fd, buf, size)) < 0) {
+			return r;
+		}
+		if ((r = syscall_mem_map(child_envid, va + i, 0, BUFPAGE, PTE_V | PTE_R)) < 0) {
+			return r;
+		}
+		user_bcopy((void *)buf, (void *)BUFPAGE, size);
+		if ((r = syscall_mem_unmap(0, BUFPAGE)) < 0) {
+			return r;
+		}
+		i += size;
+	}
+	while (i < sgsize) {
+		if ((r = syscall_mem_alloc(child_envid, va + i, PTE_V | PTE_R)) < 0) {
+			return r;
+		}
+		i += BY2PG;
+	}
 	return 0;
 }
 

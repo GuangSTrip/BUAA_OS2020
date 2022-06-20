@@ -138,7 +138,8 @@ piperead(struct Fd *fd, void *vbuf, u_int n, u_int offset)
 		if (p->p_rpos >= p->p_wpos) {
 			return i;
 		}
-		rbuf[i] = p->p_buf[(p->p_rpos++) % BY2PIPE];
+		rbuf[i] = p->p_buf[(p->p_rpos) % BY2PIPE];
+		p->p_rpos++;
 	}
 	return n;
 	user_panic("piperead not implemented");
@@ -167,7 +168,8 @@ pipewrite(struct Fd *fd, const void *vbuf, u_int n, u_int offset)
 			}
 			syscall_yield();
 		}
-		p->p_buf[(p->p_wpos++) % BY2PIPE] = wbuf[i];
+		p->p_buf[(p->p_wpos) % BY2PIPE] = wbuf[i];
+		p->p_wpos++;
 	}
 //	return -E_INVAL;
 	
