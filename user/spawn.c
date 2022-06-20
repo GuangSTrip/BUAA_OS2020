@@ -50,7 +50,7 @@ init_stack(u_int child, char **argv, u_int *init_esp)
 	}
 	//	- initialize args[0..argc-1] to be pointers to these strings
 	//	  that will be valid addresses for the child environment
-	//	  (for whom this page will be at USTACKTOP-BY2PG!).
+	//	  (for whom:q this page will be at USTACKTOP-BY2PG!).
 	ctemp = (char *)(USTACKTOP - TMPPAGETOP + (u_int)strings);
 	for(i = 0;i < argc;i++)
 	{
@@ -104,8 +104,8 @@ usr_load_elf(int fd , Elf32_Phdr *ph, int child_envid){
 	//Hint: maybe this function is useful 
 	//      If you want to use this func, you should fill it ,it's not hard
 	u_long va = ph->p_vaddr;
-	u_int32_t sgsize = ph->p_memsz;
-	u_int32_t binsize = ph->p_filesz;
+	u_int sgsize = ph->p_memsz;
+	u_int binsize = ph->p_filesz;
 	u_long f_offset = ph->p_offset;
 	u_long offset = va - ROUNDDOWN(va, BY2PG);
 	int size, r;
@@ -149,7 +149,6 @@ usr_load_elf(int fd , Elf32_Phdr *ph, int child_envid){
 		if ((r = syscall_mem_unmap(0, BUFPAGE)) < 0) {
 			return r;
 		}
-		i += size;
 	}
 	while (i < sgsize) {
 		if ((r = syscall_mem_alloc(child_envid, va + i, PTE_V | PTE_R)) < 0) {
