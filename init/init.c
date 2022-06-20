@@ -21,6 +21,9 @@ void mips_init() {
 	//ENV_CREATE(user_testptelibrary);
 	//ENV_CREATE(user_icode);
 	ENV_CREATE(fs_serv);
+	
+	//ENV_CREATE(user_testpiperace);
+        //ENV_CREATE(user_testptelibrary);
  
 	trap_init();
 	kclock_init();

@@ -161,7 +161,7 @@ pipewrite(struct Fd *fd, const void *vbuf, u_int n, u_int offset)
 	p = (struct Pipe *)fd2data(fd);
 	wbuf = (char *)vbuf;
 	for (i = 0; i < n; i++) {
-		if ((p->p_wpos - p->p_rpos) >= BY2PIPE) {
+		while ((p->p_wpos - p->p_rpos) >= BY2PIPE) {
 			if (_pipeisclosed(fd, p) == 1) {
 				return 0;
 			}
@@ -172,7 +172,7 @@ pipewrite(struct Fd *fd, const void *vbuf, u_int n, u_int offset)
 //	return -E_INVAL;
 	
 	
-	user_panic("pipewrite not implemented");
+	//user_panic("pipewrite not implemented");
 
 	return n;
 }
