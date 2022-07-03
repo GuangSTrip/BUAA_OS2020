@@ -155,7 +155,7 @@
 #define LIST_INSERT_TAIL(head, elm, field) do {							\
 		if (LIST_FIRST((head)) != NULL) {						\
 			(elm)->field.le_next = LIST_FIRST((head));				\
-			while ((elm)->field.le_next->field.le_next != NULL)			\
+			while (((elm)->field.le_next)->field.le_next != NULL)			\
 				(elm)->field.le_next = (elm)->field.le_next->field.le_next;	\
 			(elm)->field.le_prev = &((elm)->field.le_next->field.le_next);		\
 			(elm)->field.le_next->field.le_next = (elm);				\
@@ -165,6 +165,24 @@
 		}										\
 		(elm)->field.le_next = NULL;							\
 	} while (0)
+
+
+/*#define LIST_INSERT_TAIL(head, elm, field) do {	\
+		if (LIST_EMPTY((head))) {	\
+			LIST_NEXT((elm), field) = NULL;	\
+			LIST_FIRST((head)) = (elm);	\
+			(elm)->field.le_prev = &LIST_FIRST((head));	\
+		} else {	\
+			LIST_NEXT((elm), field) = LIST_FIRST((head));	\
+			while (LIST_NEXT(LIST_NEXT((elm), field), field) != NULL)	\
+			{	\
+				LIST_NEXT((elm), field) = LIST_NEXT(LIST_NEXT((elm), field), field);	\
+			}	\
+			LIST_NEXT(LIST_NEXT((elm), field), field) = (elm);	\
+			(elm)->field.le_prev = &LIST_NEXT(LIST_NEXT((elm), field), field);	\
+			LIST_NEXT((elm), field) = NULL;		\
+		}	\
+	} while (0)*/
 /* finish your code here. */
 
 

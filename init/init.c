@@ -16,8 +16,15 @@ void mips_init() {
 
 	//ENV_CREATE(user_tltest);
 	//ENV_CREATE(user_fktest);
-	 ENV_CREATE(user_pingpong);
-
+	// ENV_CREATE(user_pingpong);
+	//ENV_CREATE(user_basictest);
+	//ENV_CREATE(user_canceltest);
+	ENV_CREATE(user_sembasictest);
+	//ENV_CREATE(user_jointest);
+	//ENV_CREATE(user_sharetest);
+	//ENV_CREATE(user_barber);
+	//ENV_CREATE(user_seller);
+	
 	trap_init();
 	kclock_init();
 

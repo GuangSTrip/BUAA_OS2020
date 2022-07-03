@@ -11,9 +11,10 @@
 
 struct Env *envs = NULL;        // All environments
 struct Env *curenv = NULL;            // the current env
-
+struct Pth *curpth = NULL;
 static struct Env_list env_free_list;    // Free list
 struct Env_list env_sched_list[2];      // Runnable list
+struct Pth_list pth_sched_list[2];
  
 extern Pde *boot_pgdir;
 extern char *KERNEL_SP;
@@ -121,6 +122,19 @@ int envid2env(u_int envid, struct Env **penv, int checkperm)
     return 0;
 }
 
+int pthid2pth(u_int threadid, struct Pth **p) {
+	struct Env *e;
+	int r;
+	u_int id = threadid;
+	if (threadid == 0) {
+		id = curpth->pth_id;
+	}
+	if ((r = envid2env(id >> 3, &e, 0)) < 0) {
+		return r;
+	}
+	struct Pth *npth = &e->env_pth[id & 0x7];
+	*p = npth;
+}
 /* Overview:
  *  Mark all environments in 'envs' as free and insert them into the env_free_list.
  *  Insert in reverse order,so that the first call to env_alloc() returns envs[0].
@@ -138,6 +152,8 @@ env_init(void)
 	LIST_INIT(&env_free_list);
 	LIST_INIT(&env_sched_list[0]);
 	LIST_INIT(&env_sched_list[1]);
+	LIST_INIT(&pth_sched_list[0]);
+	LIST_INIT(&pth_sched_list[1]);
     /* Step 2: Traverse the elements of 'envs' array,
      *   set their status as free and insert them into the env_free_list.
      * Choose the correct loop order to finish the insertion.
@@ -201,6 +217,47 @@ env_setup_vm(struct Env *e)
     return 0;
 }
 
+//lab4-challenge
+int thread_alloc(struct Env *e, struct Pth **newp) {
+        if (e->env_pth_num >= NPTH) {
+                return -E_NO_FREE_PTH;
+        }
+	//basic message
+	u_int no = e->env_pth_num;
+	int count = 0;
+	while (e->env_pth[no].pth_status != ENV_FREE) {
+		no = (no + 1) % NPTH;
+		count++;
+		if (count >= NPTH) {
+			return -E_NO_FREE_PTH;
+		}
+	}
+	e->env_pth_num++;
+	//printf("env_pth_num is : %d\n", e->env_pth_num);
+	struct Pth *p = &e->env_pth[no];
+	p->pth_id = ((e->env_id << 3) | no);
+	p->pth_in_ienv = no;
+	p->pth_envid = e->env_id;
+	//printf("thread %d in env %d is alloc\n", p->pth_id, e->env_id);
+	p->pth_status = ENV_RUNNABLE;
+	p->pth_tf.cp0_status = 0x10001004;
+	p->pth_tf.regs[29] = USTACKTOP - 4 * BY2PG * no;//different stack room
+	//p->pth_tf.regs[31] = (void *)
+	//exit
+	p->pth_exit_ptr = (void *)0;
+	p->pth_exit_value = 0;
+	//cancel
+	p->pth_cancelstate = THREAD_CANCEL_ENABLE;
+	p->pth_canceltype = THREAD_CANCEL_DEFERRED;
+	//join
+	LIST_INIT(&p->pth_joined_list);
+	//detach
+	//p->pth_detach = 0;
+	//return 
+	*newp = p;
+	return 0;
+}
+
 /* Overview:
  *  Allocate and Initialize a new environment.
  *  On success, the new environment is stored in *new.
@@ -226,7 +283,7 @@ env_alloc(struct Env **new, u_int parent_id)
 {
     int r;
     struct Env *e;
-
+    struct Pth *p;
     /* Step 1: Get a new Env from env_free_list*/
 	if (LIST_EMPTY(&env_free_list)) {
 		return -E_NO_FREE_ENV;
@@ -245,14 +302,18 @@ env_alloc(struct Env **new, u_int parent_id)
 	e->env_status = ENV_RUNNABLE;
 
     /* Step 4: Focus on initializing the sp register and cp0_status of env_tf field, located at this new Env. */
-    e->env_tf.cp0_status = 0x1000100c;
-	e->env_tf.regs[29] = USTACKTOP;
-
+    //e->env_tf.cp0_status = 0x1000100c;
+	//e->env_tf.regs[29] = USTACKTOP;
+	e->env_pth_num = 0;
+	if ((r = thread_alloc(e, &p)) < 0) {
+		return r;
+	}
     /* Step 5: Remove the new Env from env_free_list. */
 	LIST_REMOVE(e, env_link);
 	*new = e;
 	return 0;
 }
+
 
 /* Overview:
  *   This is a call back function for kernel's elf loader.
@@ -362,9 +423,11 @@ load_icode(struct Env *e, u_char *binary, u_int size)
 	
     /* Step 3: load the binary using elf loader. */
 	load_elf(binary, size, &entry_point, (void*) e, load_icode_mapper);
-
-    /* Step 4: Set CPU's PC register as appropriate value. */
-    e->env_tf.pc = entry_point;
+	
+	e->env_pth[0].pth_status = ENV_RUNNABLE;
+        LIST_INSERT_HEAD(pth_sched_list, &e->env_pth[0], pth_sched_link);    
+/* Step 4: Set CPU's PC register as appropriate value. */
+    e->env_pth[0].pth_tf.pc = entry_point;
 }
 
 /* Overview:
@@ -386,11 +449,13 @@ env_create_priority(u_char *binary, int size, int priority)
 		return;
 	}
     /* Step 2: assign priority to the new env. */
-	e->env_pri = priority;
+	e->env_pth[0].pth_pri = priority;
     /* Step 3: Use load_icode() to load the named elf binary,
        and insert it into env_sched_list using LIST_INSERT_HEAD. */
 	load_icode(e, binary, size);
-	LIST_INSERT_HEAD(env_sched_list, e, env_sched_link); // ---------
+	//LIST_INSERT_HEAD(env_sched_list, e, env_sched_link); // ---------
+	//e->env_pth[0].pth_status = ENV_RUNNABLE;
+	//LIST_INSERT_HEAD(pth_sched_list, &e->env_pth[0], pth_sched_link);
 }
 /* Overview:
  * Allocate a new env with default priority value.
@@ -446,8 +511,11 @@ env_free(struct Env *e)
     page_decref(pa2page(pa));
     /* Hint: return the environment to the free list. */
     e->env_status = ENV_FREE;
+//	printf("0\n");
     LIST_INSERT_HEAD(&env_free_list, e, env_link);
-    LIST_REMOVE(e, env_sched_link);
+ //   printf("1\n");
+   // LIST_REMOVE(e, env_sched_link);
+//	printf("2\n");
 }
 
 /* Overview:
@@ -502,7 +570,6 @@ env_run(struct Env *e)
 
     /* Step 2: Set 'curenv' to the new environment. */
 	curenv = e;
-
     /* Step 3: Use lcontext() to switch to its address space. */
 	lcontext(e->env_pgdir);
 
@@ -515,12 +582,62 @@ env_run(struct Env *e)
 	env_pop_tf(&(e->env_tf), GET_ENV_ASID(e->env_id));
 }
 
-void env_check()
+void pth_run(struct Pth *p) {
+	//printf("3\n");
+	if (curpth) {
+		struct Trapframe *old;
+                old = (struct Trapframe *)(TIMESTACK - sizeof(struct Trapframe));
+                bcopy((void*) old, (void*) &(curpth->pth_tf), sizeof(struct Trapframe));
+                curpth->pth_tf.pc = curpth->pth_tf.cp0_epc;
+	}
+	//printf("4\n");
+	curpth = p;
+	struct Env *e;
+	int r = envid2env(p->pth_envid, &e, 0);
+	curenv = e;
+	//printf("%x\n", e);
+	lcontext(e->env_pgdir);
+	//printf("4.5\n");
+	env_pop_tf(&(curpth->pth_tf), GET_ENV_ASID(curenv->env_id));
+	//printf("5\n");
+}
+
+void thread_free(struct Pth *p) {
+	struct Env *e;
+	envid2env(p->pth_envid, &e, 0);
+	e->env_pth_num--;
+	//printf("%d env_pth_num is %d\n", p->pth_id, e->env_pth_num);
+	if (e->env_pth_num == 0) {
+		env_free(e);
+	}
+	if (p->pth_status == ENV_RUNNABLE) {
+		LIST_REMOVE(p, pth_sched_link);
+	}
+	p->pth_status = ENV_FREE;
+}
+
+void thread_destroy(struct Pth *p) {
+	//if (p == 0) return;
+	/*if (p->pth_status == ENV_RUNNABLE) {
+		LIST_REMOVE(p, pth_sched_link);
+	}*/
+	thread_free(p);
+	//printf("now destroying %d, curpth is %d \n", p->pth_id, curpth->pth_id);
+	if (curpth == p) {
+		curpth = NULL;
+		bcopy((void *)KERNEL_SP - sizeof(struct Trapframe),
+			(void *)TIMESTACK - sizeof(struct Trapframe),
+			sizeof(struct Trapframe));
+		//printf("thread %d  is killed ... \n", p->pth_id);
+		sched_yield();
+	}
+}
+/*void env_check()
 {
     struct Env *temp, *pe, *pe0, *pe1, *pe2;
     struct Env_list fl;
     int re = 0;
-    /* should be able to allocate three envs */
+    // should be able to allocate three envs 
     pe0 = 0;
     pe1 = 0;
     pe2 = 0;
@@ -532,15 +649,15 @@ void env_check()
     assert(pe1 && pe1 != pe0);
     assert(pe2 && pe2 != pe1 && pe2 != pe0);
 
-    /* temporarily steal the rest of the free envs */
+    // temporarily steal the rest of the free envs 
     fl = env_free_list;
-    /* now this env_free list must be empty! */
+    / now this env_free list must be empty! 
     LIST_INIT(&env_free_list);
 
-    /* should be no free memory */
+     should be no free memory 
     assert(env_alloc(&pe, 0) == -E_NO_FREE_ENV);
 
-    /* recover env_free_list */
+    / recover env_free_list 
     env_free_list = fl;
 
     printf("pe0->env_id %d\n",pe0->env_id);
@@ -552,7 +669,7 @@ void env_check()
     assert(pe2->env_id == 5122);
     printf("env_init() work well!\n");
 
-    /* check envid2env work well */
+    // check envid2env work well 
     pe2->env_status = ENV_FREE;
     re = envid2env(pe2->env_id, &pe, 0);
 
@@ -570,7 +687,7 @@ void env_check()
     curenv = temp;
     printf("envid2env() work well!\n");
 
-    /* check env_setup_vm() work well */
+    // check env_setup_vm() work well 
     printf("pe1->env_pgdir %x\n",pe1->env_pgdir);
     printf("pe1->env_cr3 %x\n",pe1->env_cr3);
 
@@ -581,7 +698,7 @@ void env_check()
     assert(pe2->env_tf.cp0_status == 0x10001004);
     printf("pe2`s sp register %x\n",pe2->env_tf.regs[29]);
 
-    /* free all env allocated in this function */
+    // free all env allocated in this function 
     LIST_INSERT_HEAD(env_sched_list, pe0, env_sched_link);
     LIST_INSERT_HEAD(env_sched_list, pe1, env_sched_link);
     LIST_INSERT_HEAD(env_sched_list, pe2, env_sched_link);
@@ -591,10 +708,10 @@ void env_check()
     env_free(pe0);
 
     printf("env_check() succeeded!\n");
-}
+}*/
 
-void load_icode_check() {
-    /* check_icode.c from init/init.c */
+/*void load_icode_check() {
+    / check_icode.c from init/init.c 
     extern u_char binary_user_check_icode_start[];
     extern u_int binary_user_check_icode_size;
     env_create(binary_user_check_icode_start, binary_user_check_icode_size);
@@ -602,7 +719,7 @@ void load_icode_check() {
     Pte* pte;
     u_int paddr;
     assert(envid2env(1024, &e, 0) == 0);
-    /* text & data: 0x00401030 - 0x00409adc left closed and right open interval */
+    // text & data: 0x00401030 - 0x00409adc left closed and right open interval 
     assert(pgdir_walk(e->env_pgdir, 0x00401000, 0, &pte) == 0);
     assert(*((int *)KADDR(PTE_ADDR(*pte)) + 0xc) == 0x8fa40000);
     assert(*((int *)KADDR(PTE_ADDR(*pte)) + 1023) == 0x26300001);
@@ -631,7 +748,7 @@ void load_icode_check() {
     assert(*((int *)KADDR(PTE_ADDR(*pte))) == 0x00000000);
     assert(*((int *)KADDR(PTE_ADDR(*pte)) + 0x2aa) == 0x004099fc);
     printf("text & data segment load right!\n");
-    /* bss        : 0x00409adc - 0x0040aab4 left closed and right open interval */
+    // bss        : 0x00409adc - 0x0040aab4 left closed and right open interval 
     assert(*((int *)KADDR(PTE_ADDR(*pte)) + 0x2b7) == 0x00000000);
     assert(*((int *)KADDR(PTE_ADDR(*pte)) + 1023) == 0x00000000);
     assert(pgdir_walk(e->env_pgdir, 0x0040a000, 0, &pte) == 0);
@@ -644,5 +761,5 @@ void load_icode_check() {
 
     env_free(e);
     printf("load_icode_check() succeeded!\n");
-}
+}*/
 

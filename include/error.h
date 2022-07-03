@@ -22,5 +22,6 @@
 #define E_NOT_EXEC	12	// File not a valid executable
 
 #define MAXERROR 12
-
+//lab4-challenge
+#define E_NO_FREE_PTH	13
 #endif // _ERROR_H_

@@ -14,33 +14,48 @@
 /*** exercise 3.15 ***/
 extern struct Env_list env_sched_list[];
 extern struct Env* curenv;
+extern struct Pth* curpth;
+extern struct Pth_list pth_sched_list[];
 void sched_yield(void)
 {
     static int count = 0; // remaining time slices of current env
     static int point = 0; // current env_sched_list index
 	static struct Env *env = NULL;
-	while (count <= 0 || env == NULL || (env != NULL && env->env_status != ENV_RUNNABLE)) {
+	static struct Pth *pth = NULL;
+	//printf("1\n");
+	while (count <= 0 || pth  == NULL || (pth != NULL && pth->pth_status != ENV_RUNNABLE)) {
 		count = 0;
-		if (env != NULL) {
-			LIST_REMOVE(env, env_sched_link);
-			if (env->env_status != ENV_FREE) {
-				LIST_INSERT_TAIL(&env_sched_list[1 - point], env, env_sched_link);
+		//printf("11\n");
+		if (pth != NULL) {
+			//printf("121\n");
+			LIST_REMOVE(pth, pth_sched_link);
+			//printf("131\n");
+			if (pth->pth_status != ENV_FREE) {
+				//printf("1311\n");
+				LIST_INSERT_TAIL(&pth_sched_list[1 - point], pth, pth_sched_link);
+				//printf("1312\n");
 			}
+			//printf("141\n");
 		}
-		if (LIST_EMPTY(&env_sched_list[point])) {
+		//printf("22\n");
+		if (LIST_EMPTY(&pth_sched_list[point])) {
 			point = 1 - point;
 		}
-		if (LIST_EMPTY(&env_sched_list[point])) {
+		//printf("33\n");
+		if (LIST_EMPTY(&pth_sched_list[point])) {
 			//panic("^^^^^^^there is no runnable env^^^^^^^by sched_yield");
 			continue;
 		}
-		env = LIST_FIRST(&env_sched_list[point]);
-		if (env != NULL) {
-			count = env->env_pri;
+		//printf("44\n");
+		pth = LIST_FIRST(&pth_sched_list[point]);
+		if (pth != NULL) {
+			count = pth->pth_pri;
 		}
+		//printf("55\n");
 	}
 	count--;
-	env_run(env);
+	//printf("sched to %d\n", pth->pth_id);
+	pth_run(pth);
 	//env_run(LIST_FIRST(env_sched_list));
     /*  hint:
      *  1. if (count==0), insert `e` into `env_sched_list[1-point]`

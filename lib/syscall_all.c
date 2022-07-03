@@ -428,3 +428,175 @@ int sys_ipc_can_send(int sysno, u_int envid, u_int value, u_int srcva,
 	}
 	return 0;
 }
+
+int sys_thread_alloc(void) {
+	int r;
+	struct Pth *p;
+	if ((r = thread_alloc(curenv, &p)) < 0) {
+		return r;
+	}
+	p->pth_pri = curenv->env_pth[0].pth_pri;
+	p->pth_status = ENV_NOT_RUNNABLE;
+	p->pth_tf.regs[2] = 0;
+	p->pth_tf.pc = p->pth_tf.cp0_epc;
+	LIST_INSERT_HEAD(pth_sched_list, p, pth_sched_link);
+	return (p->pth_id & 0x7);
+}
+
+int sys_set_thread_status(int sysno, u_int threadid, u_int status) {
+	if (status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE && status != ENV_FREE) {
+		return -E_INVAL;
+	}
+	//printf("set status for %d\n", threadid);
+	struct Env *e;
+	struct Pth *p;
+	int r;
+	u_int id = threadid;
+	if (threadid == 0) {
+		id = curpth->pth_id;
+	}
+	if ((r = envid2env((id >> 3), &e, 0)) < 0) {
+		return r;
+	}
+	p = & e->env_pth[id & 0x7];
+	extern struct Pth_list pth_sched_list[2];	
+	/*if (status == ENV_RUNNABLE && p->pth_status != ENV_RUNNABLE) {
+		LIST_INSERT_HEAD(pth_sched_list, p, pth_sched_link);	
+		printf("+++%d put in sched_list+++\n",p->pth_id);
+	} else if (status != ENV_RUNNABLE && p->pth_status == ENV_RUNNABLE) {
+		LIST_REMOVE(p, pth_sched_link);
+		printf("+++%d out of sched_list+++\n",p->pth_id);
+	}*/
+	p->pth_status = status;
+	return 0;
+}
+
+u_int sys_getthreadid(void) {
+	return curpth->pth_id;
+}
+
+int sys_thread_destroy(int sysno, u_int threadid) {
+	struct Env *e;
+	struct Pth *p;
+	int r;
+	u_int id = threadid;
+	if (threadid == 0) {
+		id = curpth->pth_id;
+	}
+	//printf("-----detroy id is %d to %d----\n", threadid, id);
+	if ((r = envid2env((id >> 3), &e, 0)) < 0) {
+                return r;
+        }
+        p = &e->env_pth[id & 0x7];
+	struct Pth *tmp;
+	while (!LIST_EMPTY(&p->pth_joined_list)) {
+		//printf("end by %d\n", p->pth_id);
+		tmp = LIST_FIRST(&p->pth_joined_list);
+		LIST_REMOVE(tmp, pth_joined_link);
+		//*(tmp->pth_join_value_ptr) = p->pth_exit_ptr;
+		sys_set_thread_status(0, tmp->pth_id, ENV_RUNNABLE);
+	}
+	//printf("destroying %d\n", p->pth_id);
+	thread_destroy(p);
+	return 0;
+}
+
+int sys_thread_join(int sysno, u_int threadid, void **thread_return) {
+	struct Pth *p;
+	pthid2pth(threadid, &p);
+	/*if (p->pth_detach != 0) {
+		printf("thread_join failed: si detached!!\n");
+		return -1;
+	}*/
+	//printf("join:: %d to %d\n", curpth->pth_id, p->pth_id);
+	if (p->pth_status == ENV_FREE) {
+		if (thread_return != 0) {
+			*thread_return = p->pth_exit_ptr;
+		}
+		return 0;
+	}
+	LIST_INSERT_HEAD(&p->pth_joined_list, curpth, pth_joined_link);
+	curpth->pth_join_value_ptr = thread_return;
+	sys_set_thread_status(0, curpth->pth_id, ENV_NOT_RUNNABLE);
+	struct Trapframe *trap = (struct Trapframe *)(KERNEL_SP - sizeof(struct Trapframe));
+	trap->regs[2] = 0;
+	trap->pc = trap->cp0_epc;
+	sys_yield();
+	return 0;
+}
+
+int sys_sem_init(int sysno, sem_t *sem, int shared, u_int value, u_int envid) {
+	//printf("sem_init for %d\n", sem);
+	sem->sem_value = value;
+	sem->sem_status = 1;
+	sem->sem_shared = shared;
+	sem->sem_envid = envid;
+	sem->sem_wait_num = 0;
+	sem->sem_wait_i = 0;
+	int i = 0;
+	for (i = 0; i < NWAITSEM; i++) {
+		sem->sem_wait_list[i] = 0;
+	}
+}
+
+int sys_sem_destroy(int sysno, sem_t *sem) {
+	if (sem->sem_status == 0) {
+		return 0;
+	}
+	if (sem->sem_wait_num != 0) {
+		printf("sem_destroy fail::  there are waiting threads!\n");
+	}
+	sem->sem_status = 0;
+	return 0;
+}
+
+int sys_sem_wait(int sysno, sem_t *sem) {
+	//printf("sem_wait for  %d\n", sem);
+	if (sem->sem_value > 0) {
+		sem->sem_value--;
+		return 0;
+	}
+	//printf("yes!!");i
+	//printf("-------- %d stop thread %d\n", sem, curpth->pth_id);
+	sys_set_thread_status(0, curpth->pth_id, ENV_NOT_RUNNABLE);
+	sem->sem_wait_list[sem->sem_wait_i] = curpth->pth_id;
+	sem->sem_wait_i = (sem->sem_wait_i + 1) % NWAITSEM;
+	//printf("sem_wait_i is %d\n", sem->sem_wait_i);
+	sem->sem_wait_num++;
+	curpth->pth_tf.regs[2] = 0; //check
+	curpth->pth_tf.pc = curpth->pth_tf.cp0_epc;
+	struct Trapframe *trap = (struct Trapframe *)(KERNEL_SP - sizeof(struct Trapframe));
+	trap->regs[2] = 0;
+	trap->pc = trap->cp0_epc;
+	//printf("yes!!\n");
+	sys_yield();
+	return -1;	
+}
+
+int sys_sem_trywait(int sysno, sem_t *sem) {
+	if (sem->sem_value > 0) {
+		sem->sem_value--;
+		return 0;
+	}
+	return -1;
+}
+
+int sys_sem_post(int sysno, sem_t *sem) {
+	//printf("sem_post for  %d\n", sem);
+	if (sem->sem_wait_num == 0) {
+		sem->sem_value++;
+		return 0;
+	}
+	u_int id = sem->sem_wait_list[(sem->sem_wait_i + NWAITSEM - sem->sem_wait_num) % NWAITSEM];
+	//printf("------%d post thread %d\n", sem, id);
+	sys_set_thread_status(0, id, ENV_RUNNABLE);
+	sem->sem_wait_num--;
+	return 0;
+}
+
+int sys_sem_getvalue(int sysno, sem_t *sem, u_int *value) {
+	if (value != 0) {
+		*value = sem->sem_value;
+	}
+	return 0;
+}

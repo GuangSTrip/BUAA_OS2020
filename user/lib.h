@@ -47,8 +47,7 @@ void syscall_putchar(char ch);
 u_int syscall_getenvid(void);
 void syscall_yield(void);
 int syscall_env_destroy(u_int envid);
-int syscall_set_pgfault_handler(u_int envid, void (*func)(void),
-								u_int xstacktop);
+int syscall_set_pgfault_handler(u_int envid, void (*func)(void), u_int xstacktop);
 int syscall_mem_alloc(u_int envid, u_int va, u_int perm);
 int syscall_mem_map(u_int srcid, u_int srcva, u_int dstid, u_int dstva,
 					u_int perm);
@@ -65,6 +64,17 @@ void syscall_panic(char *msg);
 int syscall_ipc_can_send(u_int envid, u_int value, u_int srcva, u_int perm);
 void syscall_ipc_recv(u_int dstva);
 int syscall_cgetc();
+int syscall_thread_alloc();
+int syscall_set_thread_status(u_int threadid, u_int status);
+int syscall_getthreadid();
+int syscall_thread_destroy(u_int threadid);
+int syscall_thread_join(u_int threadid, void **thread_return);
+int syscall_sem_init(sem_t *sem, int shared, u_int value, u_int envid);
+int syscall_sem_destroy(sem_t *sem);
+int syscall_sem_wait(sem_t *sem);
+int syscall_sem_trywait(sem_t *sem);
+int syscall_sem_post(sem_t *sem);
+int syscall_sem_getvalue(sem_t *sem, u_int *value);
 
 // string.c
 int strlen(const char *s);
@@ -124,6 +134,23 @@ int	read_map(int fd, u_int offset, void **blk);
 int	delete(const char *path);
 int	ftruncate(int fd, u_int size);
 int	sync(void);
+
+//pthread.c
+int pthread_create(pthread_t *thread, const pthread, void *(*start_rountine)(void *), void *arg);
+void pthread_exit(void *retval);
+int pthread_join(pthread_t th, void **thread_return);
+int pthread_setcancelstate(int state, int *oldvalue);
+int pthread_setcanceltype(int type, int *oldvalue);
+int pthread_testcancel();
+int pthread_cancel(pthread_t thread);
+
+//sem.c
+int sem_init(sem_t *sem, int shared, u_int value);
+int sem_destroy(sem_t *sem);
+int sem_wait(sem_t *sem);
+int sem_trywait(sem_t *sem);
+int sem_post(sem_t *sem);
+int sem_getvalue(sem_t *sem, u_int *value);
 
 #define user_assert(x)	\
 	do {	if (!(x)) user_panic("assertion failed: %s", #x); } while (0)

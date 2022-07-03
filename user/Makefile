@@ -13,12 +13,21 @@ USERLIB := printf.o \
 		pgfault.o \
 		syscall_lib.o \
 		ipc.o \
-		string.o
+		string.o \
+		pthread.o \
+		sem.o
 
 CFLAGS += -nostdlib -static
 
 all: tltest.x tltest.b \
 	fktest.x fktest.b pingpong.x pingpong.b idle.x \
+	basictest.x basictest.b \
+	canceltest.x canceltest.b \
+	sembasictest.x sembasictest.b \
+	jointest.x jointest.b \
+	sharetest.x sharetest.b \
+	barber.x barber.b \
+	seller.x seller.b \
 	$(USERLIB) entry.o syscall_wrap.o
 
 %.x: %.b.c
